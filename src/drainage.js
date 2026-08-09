@@ -606,6 +606,7 @@ export class DrainageManager {
     setStorageLevel(percent) {
         // scale.y ranges from 0.01 (empty) to 1.0 (full)
         const scaleY = 0.01 + (0.99 * (percent / 100));
+        this.currentStorageScaleY = scaleY;
         this.components['emergency-tank'].scale.y = scaleY;
         
         // Pivot from bottom (base is at -6.9, height is 3.8)
@@ -780,8 +781,17 @@ export class DrainageManager {
     update(deltaTime, elapsedTime) {
         // 1. Rotate waste filter cylinder if flow is active
         const filter = this.components['waste-filter'];
-        if (filter.userData.action === 'ROTATING') {
+        if (filter && filter.userData.action === 'ROTATING') {
             filter.rotation.x += deltaTime * 2.0; // spin speed
+        }
+
+        // Live sloshing wave movement on the emergency storage tank water surface
+        const tank = this.components['emergency-tank'];
+        if (tank && this.currentStorageScaleY !== undefined) {
+            const slosh = Math.sin(elapsedTime * 3.0) * 0.02 * (this.currentStorageScaleY + 0.15);
+            tank.scale.y = Math.max(0.01, this.currentStorageScaleY + slosh);
+            const baseHeight = 3.8;
+            tank.position.y = -6.9 + (baseHeight * tank.scale.y) / 2;
         }
 
         // 2. Animate water particles along their paths

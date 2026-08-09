@@ -177,12 +177,21 @@ export class CityManager {
     spawnVehicles() {
         const carColors = [0xef4444, 0x3b82f6, 0x10b981, 0xf59e0b, 0xa855f7];
         
-        // Spawn 4 cars
+        // Spawn 12 cars for realistic active street traffic
         const tracks = [
-            { x: -2, zStart: -25, speed: 8, color: carColors[0], dirZ: 1 },
-            { x: 2, zStart: 25, speed: -6, color: carColors[1], dirZ: -1 },
-            { xStart: -25, z: -2, speed: 7, color: carColors[2], dirX: 1 },
-            { xStart: 25, z: 2, speed: -5, color: carColors[3], dirX: -1 }
+            { x: -2, zStart: -25, speed: 8.0, color: carColors[0], dirZ: 1 },
+            { x: 2, zStart: 25, speed: -6.5, color: carColors[1], dirZ: -1 },
+            { x: -4, zStart: -20, speed: 7.2, color: carColors[2], dirZ: 1 },
+            { x: 4, zStart: 20, speed: -8.2, color: carColors[3], dirZ: -1 },
+            { x: -6, zStart: -15, speed: 9.0, color: carColors[4], dirZ: 1 },
+            { x: 6, zStart: 15, speed: -5.8, color: carColors[0], dirZ: -1 },
+            
+            { xStart: -25, z: -2, speed: 7.5, color: carColors[1], dirX: 1 },
+            { xStart: 25, z: 2, speed: -5.2, color: carColors[2], dirX: -1 },
+            { xStart: -20, z: -4, speed: 8.5, color: carColors[3], dirX: 1 },
+            { xStart: 20, z: 4, speed: -6.8, color: carColors[4], dirX: -1 },
+            { xStart: -15, z: -6, speed: 6.2, color: carColors[0], dirX: 1 },
+            { xStart: 15, z: 6, speed: -7.5, color: carColors[1], dirX: -1 }
         ];
 
         tracks.forEach(track => {

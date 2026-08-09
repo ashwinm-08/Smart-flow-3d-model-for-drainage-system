@@ -261,11 +261,10 @@ export class SimulationEngine {
         this.drainage.setWasteLevel(this.wastePercent);
         this.drainage.setStorageLevel(this.storagePercent);
 
-        // Map flow rates to particle animations
-        // Main particle speed, diversion particle speed, reuse particle speed
-        const particleMain = (this.outflowRate > 0) ? (this.outflowRate / this.maxOutflow) : 0;
-        const particleDiv = (divertedFlow > 0) ? (divertedFlow / this.maxInflow) : 0;
-        const particleReuse = this.isReuseActive ? 0.5 : 0;
+        // Map flow rates to particle animations (with a minimum baseline flow so the pipes always look alive)
+        const particleMain = Math.max(0.18, (this.outflowRate > 0) ? (this.outflowRate / this.maxOutflow) : 0.18);
+        const particleDiv = Math.max(0.08, (divertedFlow > 0) ? (divertedFlow / this.maxInflow) : 0.08);
+        const particleReuse = Math.max(0.10, this.isReuseActive ? 0.6 : 0.10);
         this.drainage.setFlowRates({
             main: particleMain,
             diversion: particleDiv,
