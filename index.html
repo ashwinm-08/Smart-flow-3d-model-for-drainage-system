@@ -16,14 +16,8 @@
         <!-- Animated glowing grid lines in background -->
         <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(14, 165, 233, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(14, 165, 233, 0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none;"></div>
 
-        <!-- Scroll Zoom Instruction (Visible at Start) -->
-        <div id="zoom-instruction" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 25px 40px; background: rgba(15, 23, 42, 0.55); border: 2px solid rgba(14, 165, 233, 0.3); border-radius: 16px; backdrop-filter: blur(12px); text-align: center; font-weight: 800; letter-spacing: 2px; color: #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 10; pointer-events: none; transition: opacity 0.5s ease-in-out;">
-            <div style="font-size: 28px; margin-bottom: 10px; animation: bounce-slow 2s infinite; display: inline-block;">🌌</div>
-            <div style="font-size: 1.3rem; text-transform: uppercase;">Scroll mouse wheel to zoom into the universe</div>
-        </div>
-
-        <!-- Glassmorphic Content Container (Hidden initially, fades in on scroll) -->
-        <div id="welcome-card" style="opacity: 0; position: relative; width: 90%; max-width: 500px; padding: 22px 30px; background: rgba(15, 23, 42, 0.6); border: 2px solid rgba(14, 165, 233, 0.25); border-radius: 16px; backdrop-filter: blur(15px); text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; pointer-events: auto; transition: opacity 0.5s ease-in-out; display: none;">
+        <!-- Glassmorphic Content Container (Loads automatically on startup) -->
+        <div id="welcome-card" style="opacity: 1; position: relative; width: 90%; max-width: 500px; padding: 22px 30px; background: rgba(15, 23, 42, 0.6); border: 2px solid rgba(14, 165, 233, 0.25); border-radius: 16px; backdrop-filter: blur(15px); text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 10; pointer-events: auto; transition: opacity 0.5s ease-in-out; display: block;">
             <h1 style="font-family: 'Rajdhani', sans-serif; font-size: 2.2rem; font-weight: 800; letter-spacing: 2px; margin: 0 0 2px 0; background: linear-gradient(to right, #ffffff, #0ea5e9); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SMARTFLOW 3D</h1>
             <p style="font-size: 0.85rem; color: #94a3b8; font-weight: 500; letter-spacing: 0.8px; margin: 0 0 15px 0; text-transform: uppercase;">Global 3D Urban Drainage & Storm Mitigation Engine</p>
 
@@ -41,8 +35,8 @@
             </div>
         </div>
 
-        <!-- Floating Liquid Droplet Explore Button (Floats outside, over the bottom-center) -->
-        <button id="btn-explore-drainage" style="opacity: 0; pointer-events: none; border: none; outline: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100; font-family: 'Rajdhani', sans-serif; display: none;">
+        <!-- Floating Liquid Droplet Explore Button (Fades in when loading finishes) -->
+        <button id="btn-explore-drainage" style="opacity: 0; pointer-events: none; border: none; outline: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100; font-family: 'Rajdhani', sans-serif; display: block;">
             <div class="droplet-inner">
                 <span class="droplet-text">EXPLORE</span>
                 <span class="droplet-subtext">DRAINAGE</span>

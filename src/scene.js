@@ -29,8 +29,8 @@ export class SceneManager {
             0.1, 
             1000
         );
-        // Start camera far away in space (0, 0, 60) so the galaxy stars fill the screen
-        this.camera.position.set(0, 0, 60);
+        // Start camera at a perfect zoom distance (0, 0, 36) so the upscaled Earth fills the background
+        this.camera.position.set(0, 0, 36);
 
         // 3. Renderer setup
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });

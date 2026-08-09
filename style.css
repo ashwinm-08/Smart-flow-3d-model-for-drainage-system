@@ -1070,9 +1070,9 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(circle at 35% 35%, #0ea5e9 0%, #1e40af 70%, #0f172a 100%);
-    border: 2px solid rgba(255, 255, 255, 0.35);
-    box-shadow: 0 0 25px rgba(14, 165, 233, 0.7), inset 0 8px 16px rgba(255,255,255,0.45);
+    background: radial-gradient(circle at 35% 35%, #ffffff 0%, #374151 60%, #030712 100%);
+    border: 2px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.4), inset 0 8px 16px rgba(255, 255, 255, 0.4);
     border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
     animation: slosh-blob 3.5s ease-in-out infinite alternate, button-pulse 1.8s infinite;
 }
@@ -1092,7 +1092,7 @@ body {
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 2px;
-    color: #38bdf8;
+    color: #cbd5e1;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     margin-top: 2px;
 }
@@ -1104,7 +1104,7 @@ body {
     left: -6px;
     right: -6px;
     bottom: -6px;
-    border: 1.5px solid rgba(14, 165, 233, 0.5);
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
     border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
     animation: slosh-blob 3.5s ease-in-out infinite alternate, ripple-pulse 1.8s infinite;
     pointer-events: none;

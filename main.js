@@ -16,95 +16,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const simulationEngine = new SimulationEngine(cityManager, drainageManager, dashboardManager);
     const presentationManager = new PresentationManager(sceneManager, cityManager, drainageManager, simulationEngine, dashboardManager);
 
-    // --- Welcome Splash Landing Page Controller (Interactive Scroll-to-Zoom) ---
-    const zoomInstruction = document.getElementById('zoom-instruction');
+    // --- Welcome Splash Landing Page Controller (Automated Diagnostic Bootloader) ---
     const welcomeCard = document.getElementById('welcome-card');
     const progressBar = document.getElementById('backend-progress-bar');
     const exploreBtn = document.getElementById('btn-explore-drainage');
     const splash = document.getElementById('welcome-splash');
     const hudOverlay = document.getElementById('ui-overlay');
 
-    // Frame-by-frame zoom progress tracker
-    sceneManager.registerTick(() => {
-        if (!sceneManager.isWelcomeActive) return;
+    // Ensure the Earth globe is immediately visible on launch
+    if (sceneManager.globeGroup) {
+        sceneManager.globeGroup.visible = true;
+        sceneManager.setGroupOpacity(sceneManager.globeGroup, 1.0);
+    }
 
-        const distance = sceneManager.camera.position.distanceTo(sceneManager.controls.target);
-
-        // State 1: Deep Space - Galaxy visible, instructions displayed
-        if (distance > 56.0) {
-            if (zoomInstruction) zoomInstruction.style.opacity = 1;
-            if (welcomeCard) {
-                welcomeCard.style.opacity = 0;
-                welcomeCard.style.display = 'none';
-            }
-            if (exploreBtn) {
-                exploreBtn.style.opacity = 0;
-                exploreBtn.style.display = 'none';
-                exploreBtn.style.pointerEvents = 'none';
-            }
-            if (sceneManager.globeGroup) sceneManager.globeGroup.visible = false;
-        } 
-        // State 2: Approaching Earth - Diagnostics card resolves and fills based on zoom
-        else if (distance <= 56.0 && distance > 43.0) {
-            if (zoomInstruction) zoomInstruction.style.opacity = 0;
+    // Auto-running loading sequence on start
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 2;
+        if (progressBar) progressBar.style.width = `${progress}%`;
+        
+        if (progress === 16) {
+            const line = document.getElementById('backend-line-1');
+            if (line) line.style.opacity = 1;
+        }
+        if (progress === 44) {
+            const line = document.getElementById('backend-line-2');
+            if (line) line.style.opacity = 1;
+        }
+        if (progress === 68) {
+            const line = document.getElementById('backend-line-3');
+            if (line) line.style.opacity = 1;
+        }
+        if (progress === 92) {
+            const line = document.getElementById('backend-line-4');
+            if (line) line.style.opacity = 1;
+        }
+        
+        if (progress >= 100) {
+            clearInterval(interval);
             
+            // Fade out the diagnostics card
             if (welcomeCard) {
-                welcomeCard.style.display = 'block';
-                welcomeCard.style.opacity = 1;
+                gsap.to(welcomeCard, {
+                    opacity: 0,
+                    duration: 0.5,
+                    onComplete: () => {
+                        welcomeCard.style.display = 'none';
+                    }
+                });
             }
-            if (exploreBtn) {
-                exploreBtn.style.opacity = 0;
-                exploreBtn.style.display = 'none';
-                exploreBtn.style.pointerEvents = 'none';
-            }
-
-            // Map progress to distance percentage (56 to 43 is a 13-unit transition)
-            const progress = Math.min(100, Math.max(0, ((56.0 - distance) / 13.0) * 100));
-            if (progressBar) progressBar.style.width = `${progress}%`;
-
-            // Fade in Earth core dynamically based on zoom
-            if (sceneManager.globeGroup) {
-                sceneManager.globeGroup.visible = true;
-                sceneManager.setGroupOpacity(sceneManager.globeGroup, progress / 100);
-            }
-
-            // Show logs sequentially
-            if (progress >= 15) {
-                const line = document.getElementById('backend-line-1');
-                if (line) line.style.opacity = 1;
-            }
-            if (progress >= 45) {
-                const line = document.getElementById('backend-line-2');
-                if (line) line.style.opacity = 1;
-            }
-            if (progress >= 70) {
-                const line = document.getElementById('backend-line-3');
-                if (line) line.style.opacity = 1;
-            }
-            if (progress >= 92) {
-                const line = document.getElementById('backend-line-4');
-                if (line) line.style.opacity = 1;
-            }
-        } 
-        // State 3: Zoom complete - Hide diagnostics and show unique droplet button
-        else if (distance <= 43.0) {
-            if (zoomInstruction) zoomInstruction.style.opacity = 0;
             
-            if (welcomeCard) {
-                welcomeCard.style.opacity = 0;
-                setTimeout(() => {
-                    // double check we are still close before hiding card completely
-                    const d = sceneManager.camera.position.distanceTo(sceneManager.controls.target);
-                    if (d <= 43.0 && welcomeCard) welcomeCard.style.display = 'none';
-                }, 400);
-            }
-
-            if (sceneManager.globeGroup) {
-                sceneManager.globeGroup.visible = true;
-                sceneManager.setGroupOpacity(sceneManager.globeGroup, 1.0);
-            }
-
-            if (exploreBtn && exploreBtn.style.display !== 'block') {
+            // Fade in the unique black-and-white water droplet Explore button
+            if (exploreBtn) {
                 exploreBtn.style.display = 'block';
                 gsap.to(exploreBtn, {
                     opacity: 1,
@@ -117,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         }
-    });
+    }, 30);
 
     if (exploreBtn) {
         // Hover scaling on droplet
