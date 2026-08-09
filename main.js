@@ -171,6 +171,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 hudOverlay.style.opacity = 1;
                 hudOverlay.style.pointerEvents = 'auto';
             }
+
+            // Automatically enable cutaway to reveal the pipes under the road
+            cutawayActive = true;
+            cityManager.setCutaway(true);
+            if (cutawayBtn) cutawayBtn.classList.add('active');
             
             dashboardManager.log("Global grid synchronizing. Monitoring online.");
         });
@@ -240,10 +245,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Automatically zoom camera into the local city block
             sceneManager.animateCamera(cameraPresets['cam-city'].pos, cameraPresets['cam-city'].look, 1.8);
             
-            // Reset cutaway visibility state
-            cutawayActive = false;
-            cityManager.setCutaway(false);
-            cutawayBtn.classList.remove('active');
+            // Automatically enable cutaway to reveal the pipes under the road
+            cutawayActive = true;
+            cityManager.setCutaway(true);
+            if (cutawayBtn) cutawayBtn.classList.add('active');
         });
     });
 
@@ -376,6 +381,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 selectCitySystem(cityId);
                 sceneManager.animateCamera(cameraPresets['cam-city'].pos, cameraPresets['cam-city'].look, 2.0);
+                
+                // Automatically enable cutaway to reveal the pipes under the road
+                cutawayActive = true;
+                cityManager.setCutaway(true);
+                if (cutawayBtn) cutawayBtn.classList.add('active');
+                
                 dashboardManager.log(`Global node clicked: zooming into ${node.userData.name}`);
                 return;
             }
