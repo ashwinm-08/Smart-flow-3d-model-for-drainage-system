@@ -345,6 +345,43 @@ export class SceneManager {
             // Create 3D Map Pin group
             const pin = this.create3DPin(city.color);
             
+            // Add miniature underground drainage process components to the pin (extending downwards under the surface)
+            // 1. Mini Filtration Chamber (Orange cylinder)
+            const miniFilterGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.25, 8);
+            const miniFilterMat = new THREE.MeshBasicMaterial({
+                color: 0xf59e0b,
+                transparent: true,
+                opacity: 0.6,
+                wireframe: true
+            });
+            const miniFilter = new THREE.Mesh(miniFilterGeo, miniFilterMat);
+            miniFilter.position.set(0, -0.6, 0); // below the cone pointer
+            miniFilter.rotateX(Math.PI / 2);
+            pin.add(miniFilter);
+
+            // 2. Mini Emergency Storage Reservoir (Blue box)
+            const miniTankGeo = new THREE.BoxGeometry(0.35, 0.45, 0.35);
+            const miniTankMat = new THREE.MeshBasicMaterial({
+                color: 0x0ea5e9,
+                transparent: true,
+                opacity: 0.55
+            });
+            const miniTank = new THREE.Mesh(miniTankGeo, miniTankMat);
+            miniTank.position.set(0, -1.2, 0); // deeper underground
+            pin.add(miniTank);
+
+            // 3. Mini Reuse Garden / Aquifer (Green sphere)
+            const miniGardenGeo = new THREE.SphereGeometry(0.22, 8, 8);
+            const miniGardenMat = new THREE.MeshBasicMaterial({
+                color: 0x10b981,
+                transparent: true,
+                opacity: 0.65,
+                wireframe: true
+            });
+            const miniGarden = new THREE.Mesh(miniGardenGeo, miniGardenMat);
+            miniGarden.position.set(0, -1.8, 0); // deepest core connector
+            pin.add(miniGarden);
+            
             // Tag the pin head mesh as interactive for the Raycaster click checks
             const pinHead = pin.getObjectByName('pinHead');
             if (pinHead) {

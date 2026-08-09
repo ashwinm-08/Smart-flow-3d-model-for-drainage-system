@@ -447,5 +447,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. Boot scene loop
     selectCitySystem('tokyo');
     sceneManager.start();
+
+    // Event forwarding for unrestricted scroll-zoom and drag-rotation on welcome landing screen
+    const welcomeSplash = document.getElementById('welcome-splash');
+    const threeCanvas = document.querySelector('canvas');
+    if (welcomeSplash && threeCanvas) {
+        // Forward click drags and touch movements
+        const forwardEvent = (e) => {
+            if (e.target === welcomeSplash) {
+                const clonedEvent = new e.constructor(e.type, e);
+                threeCanvas.dispatchEvent(clonedEvent);
+            }
+        };
+
+        ['mousedown', 'mousemove', 'mouseup', 'touchstart', 'touchmove', 'touchend'].forEach(evt => {
+            welcomeSplash.addEventListener(evt, forwardEvent, { passive: true });
+        });
+
+        // Forward mouse wheel scrolls (critical for zoom approach)
+        welcomeSplash.addEventListener('wheel', (e) => {
+            if (e.target === welcomeSplash) {
+                threeCanvas.dispatchEvent(new WheelEvent('wheel', {
+                    deltaX: e.deltaX,
+                    deltaY: e.deltaY,
+                    deltaZ: e.deltaZ,
+                    deltaMode: e.deltaMode,
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                    screenX: e.screenX,
+                    screenY: e.screenY,
+                    bubbles: true,
+                    cancelable: true
+                }));
+            }
+        }, { passive: true });
+    }
+
     dashboardManager.log("System initialization complete. Monitoring online.");
 });
