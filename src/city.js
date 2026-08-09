@@ -4,6 +4,7 @@ export class CityManager {
     constructor(scene) {
         this.scene = scene;
         this.cityGroup = new THREE.Group();
+        this.cityGroup.name = 'cityGroup';
         this.scene.add(this.cityGroup);
 
         this.vehicles = [];

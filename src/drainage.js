@@ -4,6 +4,7 @@ export class DrainageManager {
     constructor(scene) {
         this.scene = scene;
         this.drainageGroup = new THREE.Group();
+        this.drainageGroup.name = 'drainageGroup';
         this.scene.add(this.drainageGroup);
 
         this.components = {}; // References to interactive meshes
