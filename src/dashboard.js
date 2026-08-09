@@ -198,4 +198,26 @@ export class DashboardManager {
             this.els.drawer.classList.add('hidden');
         }
     }
+
+    setCitySystem(cityName) {
+        this.activeCity = cityName;
+
+        // Update HUD title
+        const subtitleEl = document.getElementById('city-system-title');
+        if (subtitleEl) {
+            if (cityName === 'tokyo') {
+                subtitleEl.textContent = 'SYSTEM: TOKYO G-CANS (SURGE CATHEDRAL)';
+                this.log('Switched to Tokyo system: Deep discharge tunnels & turbine pumps.', 'success');
+            } else if (cityName === 'london') {
+                subtitleEl.textContent = 'SYSTEM: LONDON TIDEWAY (CSO INTERCEPTOR)';
+                this.log('Switched to London system: Victorian combined sewers & Tideway super-sewer.', 'success');
+            } else if (cityName === 'newyork') {
+                subtitleEl.textContent = 'SYSTEM: NEW YORK SPONGE CITY (BIOSWALES)';
+                this.log('Switched to New York system: Permeable bioswales & natural aquifer buffers.', 'success');
+            } else if (cityName === 'sydney') {
+                subtitleEl.textContent = 'SYSTEM: SYDNEY GPT (GROSS POLLUTANT TRAP)';
+                this.log('Switched to Sydney system: Gross pollutant traps & centrifugal vortex separators.', 'success');
+            }
+        }
+    }
 }

@@ -56,33 +56,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Scenario Selection buttons
-    const scenarioButtons = document.querySelectorAll('.btn-scenario');
-    scenarioButtons.forEach((btn, idx) => {
-        btn.addEventListener('click', () => {
+    // Unified City System Selection Helper
+    function selectCitySystem(cityId) {
+        simulationEngine.setCitySystem(cityId);
+        drainageManager.setCitySystem(cityId);
+        dashboardManager.setCitySystem(cityId);
+        
+        // Sync active class on UI buttons
+        const targetBtn = document.getElementById(`city-${cityId}`);
+        if (targetBtn) {
             scenarioButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            targetBtn.classList.add('active');
+        }
+    }
 
-            const scenarioId = idx + 1;
-            simulationEngine.triggerScenario(scenarioId);
-
-            // Sync rain buttons
-            rainButtons.forEach(b => b.classList.remove('active'));
-            const currentIntensity = simulationEngine.rainIntensity;
-            const targetRainBtn = document.querySelector(`.rain-grid .btn[data-intensity="${currentIntensity}"]`);
-            if (targetRainBtn) targetRainBtn.classList.add('active');
-
-            // Sync auto mode button
-            const autoBtn = document.getElementById('action-toggle-auto');
-            if (autoBtn) {
-                if (simulationEngine.isAutoMode) {
-                    autoBtn.textContent = "🤖 Auto-Prevention: ON";
-                    autoBtn.className = "btn-action toggle-active";
-                } else {
-                    autoBtn.textContent = "🤖 Auto-Prevention: OFF";
-                    autoBtn.className = "btn-action toggle-inactive";
-                }
-            }
+    // City Selection buttons
+    const scenarioButtons = document.querySelectorAll('.btn-scenario');
+    scenarioButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cityId = btn.id.replace('city-', '');
+            selectCitySystem(cityId);
+            
+            // Automatically zoom camera into the local city block
+            sceneManager.animateCamera(cameraPresets['cam-city'].pos, cameraPresets['cam-city'].look, 1.8);
+            
+            // Reset cutaway visibility state
+            cutawayActive = false;
+            cityManager.setCutaway(false);
+            cutawayBtn.classList.remove('active');
         });
     });
 
@@ -118,14 +119,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // General Control Buttons
     document.getElementById('btn-reset').addEventListener('click', () => {
-        simulationEngine.reset();
+        selectCitySystem('tokyo');
         
         // Reset button states
         rainButtons.forEach(b => b.classList.remove('active'));
         document.getElementById('rain-none').classList.add('active');
-        
-        scenarioButtons.forEach(b => b.classList.remove('active'));
-        document.getElementById('scenario-1').classList.add('active');
         
         autoBtn.textContent = "🤖 Auto-Prevention: ON";
         autoBtn.className = "btn-action toggle-active";
@@ -198,19 +196,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const canvas = sceneManager.renderer.domElement;
     canvas.addEventListener('click', (event) => {
-        // Calculate mouse position in normalized device coordinates
-        // (-1 to +1) for both components
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
         raycaster.setFromCamera(mouse, sceneManager.camera);
         
-        // Intersect only with components listed in the dictionary
+        // 1. Raycast click detection on digital Earth globe nodes
+        if (sceneManager.globeGroup && sceneManager.globeGroup.visible) {
+            const globeNodes = [];
+            sceneManager.globeGroup.traverse(child => {
+                if (child.isMesh && child.userData.isGlobalNode) {
+                    globeNodes.push(child);
+                }
+            });
+            const intersects = raycaster.intersectObjects(globeNodes, true);
+            if (intersects.length > 0) {
+                const node = intersects[0].object;
+                const cityId = node.userData.cityName;
+                
+                selectCitySystem(cityId);
+                sceneManager.animateCamera(cameraPresets['cam-city'].pos, cameraPresets['cam-city'].look, 2.0);
+                dashboardManager.log(`Global node clicked: zooming into ${node.userData.name}`);
+                return;
+            }
+        }
+        
+        // 2. Raycast click detection on local drainage components
         const interactiveObjects = Object.values(drainageManager.components);
         const intersects = raycaster.intersectObjects(interactiveObjects, true);
 
         if (intersects.length > 0) {
-            // Find parent object with component details
             let rootObj = intersects[0].object;
             while (rootObj && !rootObj.userData.isInteractive) {
                 rootObj = rootObj.parent;
@@ -222,7 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 dashboardManager.log(`Sensor Probe connected: ${rootObj.userData.name}`);
             }
         } else {
-            // Clicked in empty space on the canvas
             dashboardManager.hideComponentDrawer();
         }
     });
@@ -260,6 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 6. Boot scene loop
+    selectCitySystem('tokyo');
     sceneManager.start();
     dashboardManager.log("System initialization complete. Monitoring online.");
 });

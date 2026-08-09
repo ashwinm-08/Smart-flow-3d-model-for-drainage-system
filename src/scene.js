@@ -289,6 +289,14 @@ export class SceneManager {
             const dotMat = new THREE.MeshBasicMaterial({ color: city.color, transparent: true, opacity: 0.9 });
             const dot = new THREE.Mesh(dotGeo, dotMat);
 
+            const rawName = city.name.split('\n')[0];
+            const systemKey = rawName.toLowerCase().replace(' ', ''); // 'newyork', 'london', etc.
+            dot.userData = {
+                isGlobalNode: true,
+                cityName: systemKey,
+                name: rawName
+            };
+
             const r = 6.0;
             const phi = (90 - city.lat * 90) * (Math.PI / 180);
             const theta = (city.lon * 180) * (Math.PI / 180);

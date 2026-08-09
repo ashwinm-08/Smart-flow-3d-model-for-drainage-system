@@ -377,6 +377,7 @@ export class DrainageManager {
         const tankHousing = new THREE.Mesh(tankHousingGeo, this.materials.tank);
         tankHousing.position.set(-10.0, -5.0, -8.0);
         this.drainageGroup.add(tankHousing);
+        this.components['tank-housing'] = tankHousing;
 
         // Stored water block inside tank
         const tankWaterGeo = new THREE.BoxGeometry(9.8, 3.8, 5.8);
@@ -888,5 +889,125 @@ export class DrainageManager {
             }
             sprite.position.y = offset + Math.sin(time * 2.0 + offset) * 0.06;
         });
+    }
+
+    setCitySystem(cityName) {
+        this.activeCity = cityName;
+
+        // Reset scales and visibilities of the reservoir
+        const tank = this.components['emergency-tank'];
+        const housing = this.components['tank-housing'];
+        
+        if (tank && housing) {
+            if (cityName === 'tokyo') {
+                // Tokyo G-Cans: massive surge cathedral
+                housing.scale.set(1.2, 2.0, 1.2);
+                housing.position.set(-10.0, -3.0, -8.0);
+                tank.scale.x = 1.18;
+                tank.scale.z = 1.18;
+            } else if (cityName === 'london') {
+                // London CSO: long Tideway tunnel
+                housing.scale.set(0.6, 0.6, 2.5);
+                housing.position.set(-10.0, -5.0, -8.0);
+                tank.scale.x = 0.58;
+                tank.scale.z = 2.4;
+            } else if (cityName === 'newyork') {
+                // NY Sponge: smaller aquifer recharge
+                housing.scale.set(0.8, 0.8, 0.8);
+                housing.position.set(-10.0, -5.4, -8.0);
+                tank.scale.x = 0.78;
+                tank.scale.z = 0.78;
+            } else {
+                // Sydney GPT: standard vortex separator
+                housing.scale.set(1.0, 1.0, 1.0);
+                housing.position.set(-10.0, -5.0, -8.0);
+                tank.scale.x = 1.0;
+                tank.scale.z = 1.0;
+            }
+        }
+
+        // Scale reuse garden vegetation to represent Sponge City absorption in NY
+        if (this.gardenGroup) {
+            if (cityName === 'newyork') {
+                this.gardenGroup.scale.set(1.6, 2.0, 1.6);
+            } else {
+                this.gardenGroup.scale.set(1.0, 1.0, 1.0);
+            }
+        }
+
+        // Update component metadata for raycast display info drawers
+        const grate = this.components['smart-grate'];
+        const valve = this.components['diversion-valve'];
+        const filter = this.components['waste-filter'];
+
+        if (cityName === 'tokyo') {
+            if (grate) {
+                grate.userData.name = 'Deep Intake Shaft (Inlet 1)';
+                grate.userData.purpose = '30m wide drop shaft feeding excess storm runoff into G-Cans underground vaults.';
+            }
+            if (filter) {
+                filter.userData.name = 'Heavy Debris Conveyor Screen';
+                filter.userData.purpose = 'Removes major river debris and logs to protect high-speed G-Cans turbines.';
+            }
+            if (valve) {
+                valve.userData.name = 'High-Speed Turbine Pumps';
+                valve.userData.purpose = 'Four jet-engine gas turbine pumps discharging 200 cubic meters/sec to the Edogawa River.';
+            }
+            if (tank) {
+                tank.userData.name = 'Surge Cathedral (G-Cans Reservoir)';
+                tank.userData.purpose = 'Giant pillared vault (177m long, 25m high) buffering peak river overflows.';
+            }
+        } else if (cityName === 'london') {
+            if (grate) {
+                grate.userData.name = 'Victorian Combined Sewer (Inlet 1)';
+                grate.userData.purpose = 'Gravity brick interceptor conduit collecting mixed urban wastewater and storm runoff.';
+            }
+            if (filter) {
+                filter.userData.name = 'Combined Sewer Overflow (CSO) Screen';
+                filter.userData.purpose = 'Trashes screening grid protecting tideway tunnel interceptors.';
+            }
+            if (valve) {
+                valve.userData.name = 'CSO Divert Gate';
+                valve.userData.purpose = 'Actuated vertical sluice gate routing sewage spillages into deep super-sewer.';
+            }
+            if (tank) {
+                tank.userData.name = 'Thames Tideway Supersewer';
+                tank.userData.purpose = 'Deep brick-lined interceptor tunnel running 25km under the River Thames.';
+            }
+        } else if (cityName === 'newyork') {
+            if (grate) {
+                grate.userData.name = 'Curbside Bioswale Rain Garden';
+                grate.userData.purpose = 'Permeable soil and deep-root tree layers absorbing 70% of street runoff.';
+            }
+            if (filter) {
+                filter.userData.name = 'Soil Sediment Filter Bed';
+                filter.userData.purpose = 'Natural sand and gravel layers trapping fine microplastics and silt.';
+            }
+            if (valve) {
+                valve.userData.name = 'Sewer Main Overflow Bypass';
+                valve.userData.purpose = 'Proportional control valve letting excess bypass flow run into standard storm sewers.';
+            }
+            if (tank) {
+                tank.userData.name = 'Subsurface Aquifer Recharge Basin';
+                tank.userData.purpose = 'Gravel aquifer buffer naturally filtering and storing water in deep soil beds.';
+            }
+        } else { // sydney
+            if (grate) {
+                grate.userData.name = 'Stormwater Intake Curb Grate';
+                grate.userData.purpose = 'Heavy steel grate diverting main roadway surface runoff.';
+            }
+            if (filter) {
+                filter.userData.name = 'Gross Pollutant Trap (GPT) Netting';
+                filter.userData.purpose = 'In-line stainless steel mesh catching bottles, wrappers, and leaves.';
+            }
+            if (valve) {
+                valve.userData.name = 'GPT Flushing Valve';
+                valve.userData.purpose = 'Vertical release slide gate clearing trapped organic silts and sediment.';
+            }
+            if (tank) {
+                tank.userData.name = 'Vortex Separator Chamber';
+                tank.userData.purpose = 'Centrifugal vortex chamber separating heavy sands from lighter water particles.';
+            }
+        }
     }
 }

@@ -26,6 +26,8 @@ export class SimulationEngine {
         this.maxInflow = 20.0; // L/s under extreme rain
         this.maxOutflow = 16.0; // L/s pipe max capacity
         this.tankCapacity = 10000; // Liters
+        
+        this.activeCity = 'tokyo'; // Tokyo is default
     }
 
     setRain(intensity) {
@@ -307,25 +309,74 @@ export class SimulationEngine {
             return '#10b981'; // green
         };
 
+        // Dynamic label naming based on active city system
+        let grateLabel = 'INLET GRATE';
+        let wasteLabel = 'WASTE CHAMBER';
+        let s1Label = 'S1 INFLOW';
+        let s2Label = 'S2 CLOG';
+        let s3Label = 'S3 DISCHARGE';
+        let valveLabel = 'DIVERSION VALVE';
+        let tankLabel = 'RESERVOIR TANK';
+        let gardenLabel = 'REUSE IRRIGATION';
+
+        const city = this.activeCity || 'tokyo';
+        if (city === 'tokyo') {
+            grateLabel = 'DEEP INTAKE';
+            wasteLabel = 'DEBRIS CHAMBER';
+            s1Label = 'TUNNEL INFLOW';
+            s2Label = 'SURGE PRESSURE';
+            s3Label = 'RIVER OUTFLOW';
+            valveLabel = 'TURBINE PUMPS';
+            tankLabel = 'SURGE CATHEDRAL';
+            gardenLabel = 'PUBLIC REUSE';
+        } else if (city === 'london') {
+            grateLabel = 'VICTORIAN SEWER';
+            wasteLabel = 'CSO SCREEN';
+            s1Label = 'GRAVITY INFLOW';
+            s2Label = 'CSO BLOCKAGE';
+            s3Label = 'THAMES OUTFLOW';
+            valveLabel = 'CSO OVERFLOW GATE';
+            tankLabel = 'TIDEWAY TUNNEL';
+            gardenLabel = 'CLEAN REUSE';
+        } else if (city === 'newyork') {
+            grateLabel = 'BIOSWALE BED';
+            wasteLabel = 'SEDIMENT FILTER';
+            s1Label = 'SOIL ABSORPTION';
+            s2Label = 'RUNOFF SURCHARGE';
+            s3Label = 'HARBOR OUTFLOW';
+            valveLabel = 'MAIN BYPASS';
+            tankLabel = 'AQUIFER RECHARGE';
+            gardenLabel = 'RAIN GARDEN';
+        } else if (city === 'sydney') {
+            grateLabel = 'GPT CURB INTAKE';
+            wasteLabel = 'GPT NET SCREEN';
+            s1Label = 'GPT INFLOW';
+            s2Label = 'GPT SCREEN CLOG';
+            s3Label = 'PACIFIC DISCHARGE';
+            valveLabel = 'GPT FLUSH VALVE';
+            tankLabel = 'VORTEX CHAMBER';
+            gardenLabel = 'ESTUARY FLUSH';
+        }
+
         const grateColor = this.wastePercent > 80 ? '#ef4444' : (this.wastePercent > 45 ? '#f59e0b' : '#06b6d4');
-        this.drainage.updateHologramLabel('grate', `INLET GRATE\nFlow: ${this.inflowRate.toFixed(1)} L/s`, grateColor);
+        this.drainage.updateHologramLabel('grate', `${grateLabel}\nFlow: ${this.inflowRate.toFixed(1)} L/s`, grateColor);
 
         const wasteColor = this.wastePercent > 80 ? '#ef4444' : (this.wastePercent > 45 ? '#f59e0b' : '#f97316');
-        this.drainage.updateHologramLabel('waste', `WASTE CHAMBER\nFill: ${Math.round(this.wastePercent)}%`, wasteColor);
+        this.drainage.updateHologramLabel('waste', `${wasteLabel}\nFill: ${Math.round(this.wastePercent)}%`, wasteColor);
 
-        this.drainage.updateHologramLabel('s1', `S1 INFLOW\n${this.inflowRate.toFixed(1)} L/s`, getColorHex(s1State));
-        this.drainage.updateHologramLabel('s2', `S2 BLOCKAGE\nClog: ${Math.round(this.blockagePercent)}%`, getColorHex(s2State));
-        this.drainage.updateHologramLabel('s3', `S3 DISCHARGE\n${this.outflowRate.toFixed(1)} L/s`, getColorHex(s3State));
+        this.drainage.updateHologramLabel('s1', `${s1Label}\n${this.inflowRate.toFixed(1)} L/s`, getColorHex(s1State));
+        this.drainage.updateHologramLabel('s2', `${s2Label}\nClog: ${Math.round(this.blockagePercent)}%`, getColorHex(s2State));
+        this.drainage.updateHologramLabel('s3', `${s3Label}\n${this.outflowRate.toFixed(1)} L/s`, getColorHex(s3State));
 
         const valveColor = this.valveOpen > 0.8 ? '#3b82f6' : (this.valveOpen > 0 ? '#f59e0b' : '#ef4444');
         const valveText = this.valveOpen > 0.8 ? 'OPEN' : (this.valveOpen > 0 ? 'ADJUSTING' : 'CLOSED');
-        this.drainage.updateHologramLabel('valve', `DIVERSION VALVE\n${valveText}`, valveColor);
+        this.drainage.updateHologramLabel('valve', `${valveLabel}\n${valveText}`, valveColor);
 
         const tankColor = this.storagePercent > 90 ? '#ef4444' : (this.storagePercent > 50 ? '#f97316' : '#3b82f6');
-        this.drainage.updateHologramLabel('tank', `RESERVOIR TANK\n${Math.round(this.storagePercent * 100)} L (${Math.round(this.storagePercent)}%)`, tankColor);
+        this.drainage.updateHologramLabel('tank', `${tankLabel}\n${Math.round(this.storagePercent * 100)} L (${Math.round(this.storagePercent)}%)`, tankColor);
 
         const gardenColor = this.isReuseActive ? '#3b82f6' : '#10b981';
-        this.drainage.updateHologramLabel('garden', `REUSE IRRIGATION\n${this.isReuseActive ? 'ACTIVE' : 'STANDBY'}`, gardenColor);
+        this.drainage.updateHologramLabel('garden', `${gardenLabel}\n${this.isReuseActive ? 'ACTIVE' : 'STANDBY'}`, gardenColor);
 
         // Update dashboard UI elements
         this.dashboard.update({
@@ -342,5 +393,27 @@ export class SimulationEngine {
             riskIndex: riskScore,
             isAutoMode: this.isAutoMode
         });
+    }
+
+    setCitySystem(cityName) {
+        this.activeCity = cityName;
+        
+        // Calibrate simulation constants according to municipal capacity
+        if (cityName === 'tokyo') {
+            this.maxInflow = 45.0;     // Massive tunnels absorb heavy rate
+            this.tankCapacity = 50000; // Giant G-Cans surge cathedral
+        } else if (cityName === 'london') {
+            this.maxInflow = 30.0;
+            this.tankCapacity = 25000; // Long super-sewer interceptor
+        } else if (cityName === 'newyork') {
+            this.maxInflow = 15.0;     // Sponge bioswales absorb 60% runoff
+            this.tankCapacity = 10000;
+        } else { // sydney
+            this.maxInflow = 25.0;
+            this.tankCapacity = 12000;
+        }
+
+        // Reset variables for a fresh start
+        this.reset();
     }
 }
