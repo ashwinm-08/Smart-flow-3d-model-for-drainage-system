@@ -16,6 +16,89 @@ document.addEventListener('DOMContentLoaded', () => {
     const simulationEngine = new SimulationEngine(cityManager, drainageManager, dashboardManager);
     const presentationManager = new PresentationManager(sceneManager, cityManager, drainageManager, simulationEngine, dashboardManager);
 
+    // --- Welcome Splash Landing Page Controller ---
+    const progressBar = document.getElementById('backend-progress-bar');
+    const exploreBtn = document.getElementById('btn-explore-drainage');
+    const splash = document.getElementById('welcome-splash');
+    const hudOverlay = document.getElementById('ui-overlay');
+    
+    // Simulate loading local data packages
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 2;
+        if (progressBar) progressBar.style.width = `${progress}%`;
+        
+        if (progress === 16) {
+            const line = document.getElementById('backend-line-1');
+            if (line) line.style.opacity = 1;
+        }
+        if (progress === 44) {
+            const line = document.getElementById('backend-line-2');
+            if (line) line.style.opacity = 1;
+        }
+        if (progress === 68) {
+            const line = document.getElementById('backend-line-3');
+            if (line) line.style.opacity = 1;
+        }
+        if (progress === 92) {
+            const line = document.getElementById('backend-line-4');
+            if (line) line.style.opacity = 1;
+        }
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            
+            // Smoothly remove progress container and reveal Explore button
+            const progressContainer = document.getElementById('backend-progress-container');
+            if (progressContainer) progressContainer.style.display = 'none';
+            
+            if (exploreBtn) {
+                gsap.to(exploreBtn, {
+                    opacity: 1,
+                    scale: 1,
+                    duration: 0.65,
+                    ease: 'back.out(1.6)',
+                    onComplete: () => {
+                        exploreBtn.style.pointerEvents = 'auto';
+                    }
+                });
+            }
+        }
+    }, 40);
+
+    if (exploreBtn) {
+        // Hover micro-animations
+        exploreBtn.addEventListener('mouseenter', () => {
+            gsap.to(exploreBtn, { scale: 1.03, boxShadow: '0 15px 30px rgba(16, 185, 129, 0.6)', duration: 0.2 });
+        });
+        exploreBtn.addEventListener('mouseleave', () => {
+            gsap.to(exploreBtn, { scale: 1.0, boxShadow: '0 10px 25px rgba(16, 185, 129, 0.45)', duration: 0.2 });
+        });
+        
+        exploreBtn.addEventListener('click', () => {
+            gsap.to(exploreBtn, { scale: 0.96, duration: 0.1 });
+            
+            // 1. Cinematic Camera Fly-In from space coords (0, 0, 80) to local coordinates (25, 20, 25)
+            sceneManager.animateCamera(new THREE.Vector3(25, 20, 25), new THREE.Vector3(0, 0, 0), 2.2);
+
+            // 2. Fade out splash landing
+            if (splash) {
+                splash.style.opacity = 0;
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                }, 800);
+            }
+
+            // 3. Fade in HUD telemetry elements
+            if (hudOverlay) {
+                hudOverlay.style.opacity = 1;
+                hudOverlay.style.pointerEvents = 'auto';
+            }
+            
+            dashboardManager.log("Global grid synchronizing. Monitoring online.");
+        });
+    }
+
     // 2. Register Subsystems to the Render Loop
     sceneManager.registerTick((deltaTime) => {
         cityManager.update(deltaTime);

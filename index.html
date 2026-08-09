@@ -11,11 +11,48 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Welcome Splash Landing Page -->
+    <div id="welcome-splash" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; font-family: 'Rajdhani', sans-serif; transition: opacity 0.8s ease-in-out;">
+        <!-- Animated glowing grid lines in background -->
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(14, 165, 233, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(14, 165, 233, 0.05) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none;"></div>
+
+        <!-- Glassmorphic Content Container -->
+        <div style="position: relative; width: 90%; max-width: 550px; padding: 40px; background: rgba(15, 23, 42, 0.45); border: 2.5px solid rgba(14, 165, 233, 0.2); border-radius: 20px; backdrop-filter: blur(20px); text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); z-index: 10;">
+            <!-- Logo Icon with ripple ring -->
+            <div style="position: relative; width: 70px; height: 70px; margin: 0 auto 25px; background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 0 25px rgba(14, 165, 233, 0.5);">
+                💧
+                <!-- Pulsing outer ring -->
+                <div style="position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px; border: 2px solid #0ea5e9; border-radius: 50%; animation: pulse-ring 2s infinite; opacity: 0.7;"></div>
+            </div>
+
+            <h1 style="font-family: 'Rajdhani', sans-serif; font-size: 3.2rem; font-weight: 800; letter-spacing: 2px; margin: 0 0 8px 0; background: linear-gradient(to right, #ffffff, #0ea5e9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 4px 12px rgba(0,0,0,0.3);">SMARTFLOW 3D</h1>
+            <p style="font-size: 1.1rem; color: #94a3b8; font-weight: 500; letter-spacing: 0.8px; margin: 0 0 35px 0;">Global 3D Urban Drainage & Storm Mitigation Engine</p>
+
+            <!-- Backend Process Simulation Status -->
+            <div id="backend-status-container" style="text-align: left; background: rgba(2, 6, 17, 0.65); padding: 22px; border-radius: 12px; border: 1.5px solid rgba(14, 165, 233, 0.15); font-family: monospace; font-size: 0.85rem; color: #38bdf8; height: 110px; margin-bottom: 25px; overflow-hidden: true; display: flex; flex-direction: column; gap: 7px;">
+                <div id="backend-line-1" style="opacity: 0; transition: opacity 0.3s ease;">&gt; Connecting to global GIS networks... <span style="color: #10b981; font-weight: bold;">[OK]</span></div>
+                <div id="backend-line-2" style="opacity: 0; transition: opacity 0.3s ease;">&gt; Compiling municipal hydrology telemetry... <span style="color: #10b981; font-weight: bold;">[OK]</span></div>
+                <div id="backend-line-3" style="opacity: 0; transition: opacity 0.3s ease;">&gt; Synchronizing 3D locations (NYC, Tokyo, London, Sydney)... <span style="color: #10b981; font-weight: bold;">[OK]</span></div>
+                <div id="backend-line-4" style="opacity: 0; color: #10b981; font-weight: bold; transition: opacity 0.3s ease;">&gt; Core database initialized. System ready.</div>
+            </div>
+
+            <!-- Custom loading bar -->
+            <div id="backend-progress-container" style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; margin-bottom: 30px;">
+                <div id="backend-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #0ea5e9, #10b981); transition: width 0.1s linear;"></div>
+            </div>
+
+            <!-- Explore Button -->
+            <button id="btn-explore-drainage" style="width: 100%; padding: 18px; font-size: 1.15rem; font-weight: 800; font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 2px; color: #ffffff; background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%); border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.45); opacity: 0; transform: scale(0.9); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; display: block; border: 1px solid rgba(255,255,255,0.1);">
+                Explore the Drainage 🚀
+            </button>
+        </div>
+    </div>
+
     <!-- Three.js Canvas Container -->
     <div id="canvas-container"></div>
 
     <!-- UI Overlay Wrapper -->
-    <div id="ui-overlay">
+    <div id="ui-overlay" style="opacity: 0; pointer-events: none; transition: opacity 0.8s ease-in-out;">
         
         <!-- Header Panel -->
         <header class="glass-panel main-header">

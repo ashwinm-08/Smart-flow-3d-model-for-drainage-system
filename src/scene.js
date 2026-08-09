@@ -28,7 +28,8 @@ export class SceneManager {
             0.1, 
             1000
         );
-        this.camera.position.set(25, 20, 25);
+        // Start camera far away in space for a cinematic welcome fly-in
+        this.camera.position.set(0, 0, 80);
 
         // 3. Renderer setup
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
