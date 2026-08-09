@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartFlow: AI-Powered Predictive Urban Drainage & Flood Prevention System</title>
+    <link rel="stylesheet" href="./style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Three.js Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay Wrapper -->
+    <div id="ui-overlay">
+        
+        <!-- Header Panel -->
+        <header class="glass-panel main-header">
+            <div class="header-left">
+                <div class="logo-icon">🌧️</div>
+                <div>
+                    <h1>SMARTFLOW</h1>
+                    <p class="tagline">AI-Powered Predictive Urban Drainage & Flood Prevention System</p>
+                </div>
+            </div>
+            <div class="header-right" style="display: flex; gap: 12px; align-items: center; pointer-events: auto;">
+                <button class="btn-theme" id="theme-toggle-btn" aria-label="Toggle Light/Dark Mode">☀️ Light Mode</button>
+                <div class="status-indicator">
+                    <span id="system-status-led" class="led green"></span>
+                    <span id="system-status-text">SYSTEM OPERATIONAL</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Left Column: Simulation & Scenario Control Panel -->
+        <section class="glass-panel control-panel" aria-label="Simulation Controls">
+            <div class="section-title">
+                <h2>SIMULATION CONTROL PANEL</h2>
+            </div>
+            
+            <!-- Rainfall Selector -->
+            <div class="control-group">
+                <h3>RAINFALL INTENSITY</h3>
+                <div class="button-grid rain-grid">
+                    <button class="btn active" id="rain-none" data-intensity="none">☀️ None</button>
+                    <button class="btn" id="rain-light" data-intensity="light">🌦️ Light</button>
+                    <button class="btn" id="rain-heavy" data-intensity="heavy">🌧️ Heavy</button>
+                    <button class="btn" id="rain-extreme" data-intensity="extreme">⛈️ Extreme</button>
+                </div>
+            </div>
+
+            <!-- Predefined Scenarios -->
+            <div class="control-group">
+                <h3>SIMULATION SCENARIOS</h3>
+                <div class="button-column">
+                    <button class="btn-scenario active" id="scenario-1">
+                        <span class="scenario-num">01</span>
+                        <div class="scenario-info">
+                            <strong>Normal Operation</strong>
+                            <span>Moderate rain, normal flow, clean drain</span>
+                        </div>
+                    </button>
+                    <button class="btn-scenario" id="scenario-2">
+                        <span class="scenario-num">02</span>
+                        <div class="scenario-info">
+                            <strong>Waste Accumulation</strong>
+                            <span>Solid waste builds up in the filter</span>
+                        </div>
+                    </button>
+                    <button class="btn-scenario" id="scenario-3">
+                        <span class="scenario-num">03</span>
+                        <div class="scenario-info">
+                            <strong>Drainage Blockage</strong>
+                            <span>Obstruction limits pipe capacity</span>
+                        </div>
+                    </button>
+                    <button class="btn-scenario" id="scenario-4">
+                        <span class="scenario-num">04</span>
+                        <div class="scenario-info">
+                            <strong>Extreme Rain & Prevention</strong>
+                            <span>Heavy storm triggers automatic diversion</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Direct Interventions -->
+            <div class="control-group">
+                <h3>MANUAL INTERVENTIONS</h3>
+                <div class="button-grid grid-2">
+                    <button class="btn-action" id="action-add-garbage">🗑️ Add Garbage</button>
+                    <button class="btn-action" id="action-trigger-blockage">🚧 Trigger Block</button>
+                    <button class="btn-action toggle-active" id="action-toggle-auto">🤖 Auto-Prevention: ON</button>
+                    <button class="btn-action" id="action-toggle-cutaway">🔍 View Cutaway</button>
+                </div>
+            </div>
+
+            <!-- Simulation Controls -->
+            <div class="control-group action-group">
+                <button class="btn-primary" id="btn-start-presentation">⚡ Start Presentation Mode</button>
+                <button class="btn-secondary" id="btn-reset">🔄 Reset System</button>
+            </div>
+        </section>
+
+        <!-- Right Column: Monitoring Dashboard HUD -->
+        <section class="glass-panel dashboard-hud" aria-label="Monitoring Dashboard">
+            <div class="section-title">
+                <h2>SMART CITY HUD TELEMETRY</h2>
+            </div>
+
+            <!-- Big Stat Grid -->
+            <div class="stats-grid">
+                <!-- Rainfall Gauge -->
+                <div class="stat-card">
+                    <div class="stat-label">RAINFALL RATE</div>
+                    <div class="stat-value" id="val-rainfall">0 <span class="unit">mm/hr</span></div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="bar-rainfall" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Water level Upstream vs Downstream -->
+                <div class="stat-card">
+                    <div class="stat-label">DRAIN LEVEL (INLET)</div>
+                    <div class="stat-value" id="val-water-level">0%</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="bar-water-level" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Waste accumulation -->
+                <div class="stat-card">
+                    <div class="stat-label">WASTE CHAMBER FILL</div>
+                    <div class="stat-value" id="val-waste-level">0%</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="bar-waste-level" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Emergency Storage tank -->
+                <div class="stat-card">
+                    <div class="stat-label">EMERGENCY TANK</div>
+                    <div class="stat-value" id="val-storage-level">0%</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="bar-storage-level" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Telemetry Comparison -->
+            <div class="telemetry-box">
+                <div class="telemetry-title">FLOW RATE METRICS</div>
+                <div class="metric-row">
+                    <span>Upstream Sensor (S1)</span>
+                    <span id="val-flow-upstream">0.0 L/s</span>
+                </div>
+                <div class="metric-row">
+                    <span>Downstream Sensor (S3)</span>
+                    <span id="val-flow-downstream">0.0 L/s</span>
+                </div>
+                <div class="metric-row">
+                    <span>Pipe Flow Status</span>
+                    <span class="status-badge green" id="val-flow-status">Normal</span>
+                </div>
+                <div class="metric-row">
+                    <span>Diversion Valve</span>
+                    <span class="status-badge" id="val-valve-status">CLOSED</span>
+                </div>
+            </div>
+
+            <!-- Risk Evaluation Gauge -->
+            <div class="risk-gauge-card">
+                <div class="risk-header">
+                    <span>FLOOD RISK INDEX</span>
+                    <span id="val-flood-risk-percent">0%</span>
+                </div>
+                <div class="risk-bar-container">
+                    <div class="risk-segment green"></div>
+                    <div class="risk-segment yellow"></div>
+                    <div class="risk-segment orange"></div>
+                    <div class="risk-segment red"></div>
+                    <div class="risk-cursor" id="risk-cursor" style="left: 0%"></div>
+                </div>
+                <div class="risk-label" id="val-flood-risk-text">LOW 🟢</div>
+            </div>
+
+            <!-- System Notifications & Logging -->
+            <div class="log-panel">
+                <div class="log-title">SYSTEM ALERTS & NOTIFICATIONS</div>
+                <div class="log-container" id="log-container">
+                    <div class="log-entry normal">System booted successfully. AI core online.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottom Panel: Camera & Perspective Selection -->
+        <footer class="glass-panel camera-panel">
+            <span class="nav-label">CAMERA PRESETS:</span>
+            <div class="camera-btn-group">
+                <button class="btn-cam active" id="cam-city">🏙️ City View</button>
+                <button class="btn-cam" id="cam-road">🛣️ Road View</button>
+                <button class="btn-cam" id="cam-underground">🕳️ Underground</button>
+                <button class="btn-cam" id="cam-technical">⚙️ Technical View</button>
+                <button class="btn-cam" id="cam-dashboard">📊 Dashboard View</button>
+            </div>
+        </footer>
+
+        <!-- Interactive Click Tooltip Overlay (Component Details) -->
+        <div id="component-telemetry" class="glass-panel component-drawer hidden">
+            <button class="close-drawer-btn" id="close-drawer">&times;</button>
+            <div class="drawer-header">
+                <span class="drawer-icon" id="comp-icon">⚙️</span>
+                <div>
+                    <h3 id="comp-name">Component Name</h3>
+                    <span class="status-pill" id="comp-status">Operational</span>
+                </div>
+            </div>
+            <div class="drawer-body">
+                <p class="comp-desc" id="comp-purpose">This component is responsible for measuring some aspect of the smart drainage system.</p>
+                <div class="comp-telemetry-grid">
+                    <div class="comp-tel-item">
+                        <span class="comp-tel-label">Live Reading</span>
+                        <strong class="comp-tel-value" id="comp-reading">0.00</strong>
+                    </div>
+                    <div class="comp-tel-item">
+                        <span class="comp-tel-label">Action/State</span>
+                        <strong class="comp-tel-value" id="comp-action">Idle</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Presentation Step Banner -->
+        <div id="presentation-overlay" class="hidden">
+            <div class="presentation-box">
+                <div class="presentation-header">
+                    <span>PRESENTATION GUIDED TOUR</span>
+                    <button class="exit-presentation" id="btn-exit-presentation">&times;</button>
+                </div>
+                <div class="presentation-content">
+                    <span class="step-badge" id="pres-step">Step 1/12</span>
+                    <h3 id="pres-title">Step Title</h3>
+                    <p id="pres-description">Description of what is happening in the simulation right now.</p>
+                </div>
+                <div class="presentation-footer">
+                    <button class="btn-pres-nav" id="btn-pres-prev">← Previous</button>
+                    <button class="btn-pres-nav btn-pres-primary" id="btn-pres-next">Next →</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- ThreeJS, GSAP via Importmap or Node Modules (handled by Vite) -->
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
