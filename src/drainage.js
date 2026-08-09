@@ -8,7 +8,7 @@ export class DrainageManager {
 
         this.components = {}; // References to interactive meshes
         this.flowParticles = []; // Array of flowing water particles
-        this.maxParticles = 120;
+        this.maxParticles = 200;
         this.labels = {}; // Sprite holographic labels
         this.currentTheme = 'dark'; // theme state
         
@@ -45,36 +45,96 @@ export class DrainageManager {
         this.buildSystem();
         this.buildFlowParticles();
     }
-
     buildSystem() {
-        // --- 1. SMART DRAIN GRATE & INLET (Layer 2) ---
-        // Inlet box
+        // --- 1. SMART DRAIN GRATES & INLETS (Layer 2) ---
+        // Inlet 1 (Primary Smart)
         const inletGeo = new THREE.BoxGeometry(2.5, 2.0, 1.8);
-        const inlet = new THREE.Mesh(inletGeo, this.materials.concrete);
-        inlet.position.set(4.0, -0.9, 5.0);
-        inlet.receiveShadow = true;
-        this.drainageGroup.add(inlet);
+        const inlet1 = new THREE.Mesh(inletGeo, this.materials.concrete);
+        inlet1.position.set(4.0, -0.9, 5.0);
+        inlet1.receiveShadow = true;
+        this.drainageGroup.add(inlet1);
 
-        // Grate cover on the road surface
         const grateGeo = new THREE.BoxGeometry(2.0, 0.1, 1.4);
-        const grate = new THREE.Mesh(grateGeo, this.materials.metal);
-        grate.position.set(4.0, 0.12, 5.0);
-        grate.castShadow = true;
-        grate.userData = {
+        const grate1 = new THREE.Mesh(grateGeo, this.materials.metal);
+        grate1.position.set(4.0, 0.12, 5.0);
+        grate1.castShadow = true;
+        grate1.userData = {
             isInteractive: true,
             id: 'smart-grate',
-            name: 'Smart Drain Grate',
-            purpose: 'Captures surface rainwater and screens out large solid wastes.',
+            name: 'Smart Drain Grate (Inlet 1)',
+            purpose: 'Primary smart grate monitors main street runoff and filters solid waste.',
             status: 'Operational',
             reading: '0.00 L/s',
             action: 'Filtering debris'
         };
-        this.drainageGroup.add(grate);
-        this.components['smart-grate'] = grate;
+        this.drainageGroup.add(grate1);
+        this.components['smart-grate'] = grate1;
+
+        // Inlet 2 (North-West)
+        const inlet2 = new THREE.Mesh(inletGeo, this.materials.concrete);
+        inlet2.position.set(-4.8, -0.9, -4.8);
+        inlet2.receiveShadow = true;
+        this.drainageGroup.add(inlet2);
+
+        const grate2 = new THREE.Mesh(grateGeo, this.materials.metal);
+        grate2.position.set(-4.8, 0.12, -4.8);
+        grate2.castShadow = true;
+        grate2.userData = {
+            isInteractive: true,
+            id: 'grate-nw',
+            name: 'North-West Drain Grate (Inlet 2)',
+            purpose: 'Collects storm runoff from the north-west quadrant roads.',
+            status: 'Operational',
+            reading: 'Normal Flow',
+            action: 'Intake active'
+        };
+        this.drainageGroup.add(grate2);
+        this.components['grate-nw'] = grate2;
+
+        // Inlet 3 (North-East)
+        const inlet3 = new THREE.Mesh(inletGeo, this.materials.concrete);
+        inlet3.position.set(4.8, -0.9, -4.8);
+        inlet3.receiveShadow = true;
+        this.drainageGroup.add(inlet3);
+
+        const grate3 = new THREE.Mesh(grateGeo, this.materials.metal);
+        grate3.position.set(4.8, 0.12, -4.8);
+        grate3.castShadow = true;
+        grate3.userData = {
+            isInteractive: true,
+            id: 'grate-ne',
+            name: 'North-East Drain Grate (Inlet 3)',
+            purpose: 'Collects storm runoff from the north-east quadrant roads.',
+            status: 'Operational',
+            reading: 'Normal Flow',
+            action: 'Intake active'
+        };
+        this.drainageGroup.add(grate3);
+        this.components['grate-ne'] = grate3;
+
+        // Inlet 4 (South-West)
+        const inlet4 = new THREE.Mesh(inletGeo, this.materials.concrete);
+        inlet4.position.set(-4.8, -0.9, 4.8);
+        inlet4.receiveShadow = true;
+        this.drainageGroup.add(inlet4);
+
+        const grate4 = new THREE.Mesh(grateGeo, this.materials.metal);
+        grate4.position.set(-4.8, 0.12, 4.8);
+        grate4.castShadow = true;
+        grate4.userData = {
+            isInteractive: true,
+            id: 'grate-sw',
+            name: 'South-West Drain Grate (Inlet 4)',
+            purpose: 'Collects storm runoff from the south-west quadrant roads.',
+            status: 'Operational',
+            reading: 'Normal Flow',
+            action: 'Intake active'
+        };
+        this.drainageGroup.add(grate4);
+        this.components['grate-sw'] = grate4;
 
         // --- 2. ROTATING WASTE FILTER ---
         const filterGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.6, 12);
-        // Create wireframe for filter grid representation
         const filterWireMat = new THREE.MeshStandardMaterial({
             color: 0x1e293b,
             wireframe: true,
@@ -103,13 +163,13 @@ export class DrainageManager {
             opacity: 0.4,
             roughness: 0.2
         }));
-        chamberBox.position.set(4.0, -0.6, 3.2); // Positioned behind the filter
+        chamberBox.position.set(4.0, -0.6, 3.2);
         this.drainageGroup.add(chamberBox);
 
-        // Waste level mesh (scales up)
+        // Waste level mesh
         const wasteHeightGeo = new THREE.BoxGeometry(1.4, 1.2, 1.2);
         const wasteHeightMesh = new THREE.Mesh(wasteHeightGeo, this.materials.waste);
-        wasteHeightMesh.position.set(4.0, -1.2, 3.2); // Pivot from bottom
+        wasteHeightMesh.position.set(4.0, -1.2, 3.2);
         wasteHeightMesh.scale.set(1, 0.01, 1);
         wasteHeightMesh.userData = {
             isInteractive: true,
@@ -130,20 +190,77 @@ export class DrainageManager {
         this.drainageGroup.add(wasteLed);
         this.components['waste-led'] = wasteLed;
 
-        // --- 4. UNDERGROUND PIPES (Layer 3) ---
-        // Main Drain Pipe (Cylinder along X-axis from inlet to discharge)
-        // Position: inlet is x=4, main drainage runs x=4 to x=-25 at height y=-3
+        // --- 4. UNDERGROUND PIPES NETWORK (Layer 3) ---
+        // Main Drain Pipe (Cylinder along X-axis from inlet 1 to discharge at x=-25)
         const mainPipeGeo = new THREE.CylinderGeometry(0.4, 0.4, 29, 16);
         mainPipeGeo.rotateZ(Math.PI / 2);
         const mainPipe = new THREE.Mesh(mainPipeGeo, this.materials.pipe);
         mainPipe.position.set(-10.5, -3.0, 5.0);
         this.drainageGroup.add(mainPipe);
 
-        // Vertical drop pipe from inlet to main pipe
-        const dropPipeGeo = new THREE.CylinderGeometry(0.5, 0.4, 1.5, 16);
-        const dropPipe = new THREE.Mesh(dropPipeGeo, this.materials.pipe);
-        dropPipe.position.set(4.0, -2.1, 5.0);
-        this.drainageGroup.add(dropPipe);
+        // North-West collector pipe running along Z=-4.8 from x=-4.8 to x=4.8
+        const nwPipeGeo = new THREE.CylinderGeometry(0.3, 0.3, 9.6, 16);
+        nwPipeGeo.rotateZ(Math.PI / 2);
+        const nwPipe = new THREE.Mesh(nwPipeGeo, this.materials.pipe);
+        nwPipe.position.set(0, -3.0, -4.8);
+        this.drainageGroup.add(nwPipe);
+
+        // North-East collector connector pipe running along X=4.8 from z=-4.8 to z=5.0
+        const neConnPipeGeo = new THREE.CylinderGeometry(0.3, 0.3, 9.8, 16);
+        neConnPipeGeo.rotateX(Math.PI / 2);
+        const neConnPipe = new THREE.Mesh(neConnPipeGeo, this.materials.pipe);
+        neConnPipe.position.set(4.8, -3.0, 0.1);
+        this.drainageGroup.add(neConnPipe);
+
+        // South-West collector connector pipe running along X=-4.8 from z=4.8 to z=5.0
+        const swConnPipeGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 16);
+        swConnPipeGeo.rotateX(Math.PI / 2);
+        const swConnPipe = new THREE.Mesh(swConnPipeGeo, this.materials.pipe);
+        swConnPipe.position.set(-4.8, -3.0, 4.9);
+        this.drainageGroup.add(swConnPipe);
+
+        // Extended Outer Trunk Pipes to represent full municipal reach
+        // East Trunk
+        const eastTrunkGeo = new THREE.CylinderGeometry(0.4, 0.4, 20, 16);
+        eastTrunkGeo.rotateZ(Math.PI / 2);
+        const eastTrunk = new THREE.Mesh(eastTrunkGeo, this.materials.pipe);
+        eastTrunk.position.set(14.0, -3.0, 5.0);
+        this.drainageGroup.add(eastTrunk);
+
+        // North Trunk
+        const northTrunkGeo = new THREE.CylinderGeometry(0.3, 0.3, 20, 16);
+        northTrunkGeo.rotateX(Math.PI / 2);
+        const northTrunk = new THREE.Mesh(northTrunkGeo, this.materials.pipe);
+        northTrunk.position.set(4.8, -3.0, -14.8);
+        this.drainageGroup.add(northTrunk);
+
+        // South Trunk
+        const southTrunkGeo = new THREE.CylinderGeometry(0.3, 0.3, 20, 16);
+        southTrunkGeo.rotateX(Math.PI / 2);
+        const southTrunk = new THREE.Mesh(southTrunkGeo, this.materials.pipe);
+        southTrunk.position.set(4.8, -3.0, 15.0);
+        this.drainageGroup.add(southTrunk);
+
+        // Vertical drop pipe from inlet 1 to main pipe
+        const dropPipe1Geo = new THREE.CylinderGeometry(0.5, 0.4, 1.5, 16);
+        const dropPipe1 = new THREE.Mesh(dropPipe1Geo, this.materials.pipe);
+        dropPipe1.position.set(4.0, -2.1, 5.0);
+        this.drainageGroup.add(dropPipe1);
+
+        // Vertical drop pipe from inlet 2
+        const dropPipe2 = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 1.5, 16), this.materials.pipe);
+        dropPipe2.position.set(-4.8, -2.1, -4.8);
+        this.drainageGroup.add(dropPipe2);
+
+        // Vertical drop pipe from inlet 3
+        const dropPipe3 = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 1.5, 16), this.materials.pipe);
+        dropPipe3.position.set(4.8, -2.1, -4.8);
+        this.drainageGroup.add(dropPipe3);
+
+        // Vertical drop pipe from inlet 4
+        const dropPipe4 = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 1.5, 16), this.materials.pipe);
+        dropPipe4.position.set(-4.8, -2.1, 4.8);
+        this.drainageGroup.add(dropPipe4);
 
         // Diversion Pipe branching from main pipe (x=-1, y=-3, z=5) to storage tank (x=-5, y=-5, z=-8)
         // Let's model this as three straight pipe sections for clean visualization
@@ -382,7 +499,6 @@ export class DrainageManager {
         this.labels['garden'].position.set(-20.0, 1.5, -15.0);
         this.drainageGroup.add(this.labels['garden']);
     }
-
     buildFlowParticles() {
         const particleGeo = new THREE.SphereGeometry(0.08, 6, 6);
         const particleMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
@@ -393,16 +509,23 @@ export class DrainageManager {
             p.visible = false;
             this.drainageGroup.add(p);
 
+            // Stagger particles across multiple branch pathways
+            let branch = 'main';
+            if (i >= 70 && i < 110) branch = 'nw';
+            else if (i >= 110 && i < 150) branch = 'ne';
+            else if (i >= 150 && i < 180) branch = 'sw';
+            else if (i >= 180) branch = 'reuse';
+
             this.flowParticles.push({
                 mesh: p,
                 state: 'idle', // 'idle', 'main-flow', 'diversion-flow', 'reuse-flow'
+                branch: branch,
                 progress: 0,
                 speed: 1.0,
                 startOffset: Math.random() // For staggered distribution
             });
         }
     }
-
     // Set colors of sensor LEDs based on telemetry warnings
     updateSensorLeds(s1State, s2State, s3State) {
         const getColor = (state) => {
@@ -669,12 +792,59 @@ export class DrainageManager {
             let t = p.progress;
 
             if (p.state === 'main-flow') {
-                if (t < 0.2) {
-                    const segmentT = t / 0.2;
-                    p.mesh.position.set(4.0, -0.5 - segmentT * 2.5, 5.0);
+                if (p.branch === 'main') {
+                    // MAIN PATH (Smart Grate Inlet 1)
+                    if (t < 0.15) {
+                        const segmentT = t / 0.15;
+                        p.mesh.position.set(4.0, -0.5 - segmentT * 2.5, 5.0);
+                    } else {
+                        const segmentT = (t - 0.15) / 0.85;
+                        p.mesh.position.set(4.0 - segmentT * 29.0, -3.0, 5.0);
+                    }
+                } else if (p.branch === 'nw') {
+                    // NW PATH (Inlet 2)
+                    // Drop NW -> East to X=4.8 -> South to Z=5.0 -> Main flow left
+                    if (t < 0.15) {
+                        const segmentT = t / 0.15;
+                        p.mesh.position.set(-4.8, -0.5 - segmentT * 2.5, -4.8);
+                    } else if (t < 0.5) {
+                        const segmentT = (t - 0.15) / 0.35;
+                        p.mesh.position.set(-4.8 + segmentT * 9.6, -3.0, -4.8);
+                    } else if (t < 0.8) {
+                        const segmentT = (t - 0.5) / 0.3;
+                        p.mesh.position.set(4.8, -3.0, -4.8 + segmentT * 9.8);
+                    } else {
+                        const segmentT = (t - 0.8) / 0.2;
+                        p.mesh.position.set(4.8 - segmentT * 29.8, -3.0, 5.0);
+                    }
+                } else if (p.branch === 'ne') {
+                    // NE PATH (Inlet 3)
+                    // Drop NE -> South to Z=5.0 -> Main flow left
+                    if (t < 0.15) {
+                        const segmentT = t / 0.15;
+                        p.mesh.position.set(4.8, -0.5 - segmentT * 2.5, -4.8);
+                    } else if (t < 0.75) {
+                        const segmentT = (t - 0.15) / 0.6;
+                        p.mesh.position.set(4.8, -3.0, -4.8 + segmentT * 9.8);
+                    } else {
+                        const segmentT = (t - 0.75) / 0.25;
+                        p.mesh.position.set(4.8 - segmentT * 29.8, -3.0, 5.0);
+                    }
+                } else if (p.branch === 'sw') {
+                    // SW PATH (Inlet 4)
+                    // Drop SW -> South to Z=5.0 -> Main flow left
+                    if (t < 0.15) {
+                        const segmentT = t / 0.15;
+                        p.mesh.position.set(-4.8, -0.5 - segmentT * 2.5, 4.8);
+                    } else if (t < 0.3) {
+                        const segmentT = (t - 0.15) / 0.15;
+                        p.mesh.position.set(-4.8, -3.0, 4.8 + segmentT * 0.2);
+                    } else {
+                        const segmentT = (t - 0.3) / 0.7;
+                        p.mesh.position.set(-4.8 - segmentT * 20.2, -3.0, 5.0);
+                    }
                 } else {
-                    const segmentT = (t - 0.2) / 0.8;
-                    p.mesh.position.set(4.0 - segmentT * 29.0, -3.0, 5.0);
+                    p.mesh.position.set(4.0 - t * 29.0, -3.0, 5.0);
                 }
             } else if (p.state === 'diversion-flow') {
                 if (t < 0.2) {
