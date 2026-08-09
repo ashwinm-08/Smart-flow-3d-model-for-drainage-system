@@ -289,7 +289,45 @@ export class SceneManager {
         const globeMesh = new THREE.Mesh(sphereGeo, this.globeMat);
         this.globeGroup.add(globeMesh);
 
-        // 5. Spawning 3D Map Balloon Pins on City Nodes
+        // 5. Global flow pipes (glowing Tube meshes) and flow particles tracker
+        this.globalParticles = [];
+
+        const createArcPipe = (start, end, colorHex = 0x0ea5e9) => {
+            const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+            mid.normalize().multiplyScalar(9.8); // upscaled dome peak
+            const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
+            
+            // Render 3D Tube mesh representing a physical drainage pipe
+            const tubeGeo = new THREE.TubeGeometry(curve, 20, 0.05, 6, false);
+            const tubeMat = new THREE.MeshBasicMaterial({
+                color: colorHex,
+                transparent: true,
+                opacity: 0.22,
+                wireframe: true
+            });
+            const tube = new THREE.Mesh(tubeGeo, tubeMat);
+            this.globeGroup.add(tube);
+            
+            // Spawn 3 flowing particles inside this connection pipe
+            for (let i = 0; i < 3; i++) {
+                const particleMat = new THREE.MeshBasicMaterial({
+                    color: 0x38bdf8,
+                    transparent: true,
+                    opacity: 0.9
+                });
+                const particle = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), particleMat);
+                
+                this.globalParticles.push({
+                    curve: curve,
+                    t: (i / 3) + Math.random() * 0.08,
+                    speed: 0.45,
+                    mesh: particle
+                });
+                this.globeGroup.add(particle);
+            }
+        };
+
+        // 6. Spawning 3D Map Balloon Pins and Radial Core Pipes
         const cities = [
             { name: 'NEW YORK\nRisk: High Storm', lat: 0.45, lon: -0.8, color: 0xef4444 },
             { name: 'LONDON\nRisk: Active Sweep', lat: 0.58, lon: 0.0, color: 0xf59e0b },
@@ -337,6 +375,37 @@ export class SceneManager {
             this.globeGroup.add(pin);
             nodePositions.push(pos);
 
+            // Draw a radial drainage shaft pipe from center of Earth to the surface node
+            const points = [new THREE.Vector3(0, 0, 0), pos.clone().multiplyScalar(0.96)];
+            const radialCurve = new THREE.CatmullRomCurve3(points);
+            const radialTubeGeo = new THREE.TubeGeometry(radialCurve, 10, 0.08, 6, false);
+            const radialTubeMat = new THREE.MeshBasicMaterial({
+                color: city.color,
+                transparent: true,
+                opacity: 0.18,
+                wireframe: true
+            });
+            const radialTube = new THREE.Mesh(radialTubeGeo, radialTubeMat);
+            this.globeGroup.add(radialTube);
+
+            // Spawn 2 core-flow particles rising from center core to the surface
+            for (let i = 0; i < 2; i++) {
+                const particleMat = new THREE.MeshBasicMaterial({
+                    color: city.color,
+                    transparent: true,
+                    opacity: 0.95
+                });
+                const particle = new THREE.Mesh(new THREE.SphereGeometry(0.13, 6, 6), particleMat);
+                
+                this.globalParticles.push({
+                    curve: radialCurve,
+                    t: (i / 2) + Math.random() * 0.1,
+                    speed: 0.35,
+                    mesh: particle
+                });
+                this.globeGroup.add(particle);
+            }
+
             // Add floating billboarding label above node
             const label = this.createGlobalLabel(city.name, '#' + city.color.toString(16).padStart(6, '0'));
             // Position label further out along the normal vector
@@ -344,29 +413,26 @@ export class SceneManager {
             this.globeGroup.add(label);
         });
 
-        // Add communicationBezier lines representing global flow routing networks
-        const createArc = (start, end) => {
-            const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
-            mid.normalize().multiplyScalar(9.8); // upscaled dome peak
-            const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
-            const points = curve.getPoints(20);
-            const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-            const lineMat = new THREE.LineBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.45 });
-            const line = new THREE.Line(lineGeo, lineMat);
-            this.globeGroup.add(line);
-        };
-
         if (nodePositions.length >= 2) {
-            createArc(nodePositions[0], nodePositions[1]); // NY -> London
-            createArc(nodePositions[1], nodePositions[2]); // London -> Tokyo
-            createArc(nodePositions[2], nodePositions[3]); // Tokyo -> Sydney
-            createArc(nodePositions[1], nodePositions[4]); // London -> Cairo
+            createArcPipe(nodePositions[0], nodePositions[1], 0xef4444); // NY -> London (Storm Red)
+            createArcPipe(nodePositions[1], nodePositions[2], 0xf59e0b); // London -> Tokyo (Warning Orange)
+            createArcPipe(nodePositions[2], nodePositions[3], 0x10b981); // Tokyo -> Sydney (Normal Green)
+            createArcPipe(nodePositions[1], nodePositions[4], 0x10b981); // London -> Cairo (Normal Green)
         }
 
-        // Auto spin the global network
+        // Auto spin the global network and animate flowing particles along pipes
         this.registerTick((dt) => {
             if (this.globeGroup.visible) {
                 this.globeGroup.rotation.y += dt * 0.04;
+                
+                // Animate global flow particles along the curves
+                this.globalParticles.forEach(p => {
+                    p.t += dt * p.speed;
+                    if (p.t > 1.0) p.t = 0.0;
+                    
+                    const pPos = p.curve.getPointAt(p.t);
+                    p.mesh.position.copy(pPos);
+                });
             }
         });
     }
