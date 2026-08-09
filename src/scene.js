@@ -11,6 +11,7 @@ export class SceneManager {
         this.controls = null;
         this.lights = {};
         this.ticks = [];
+        this.isWelcomeActive = true;
         
         this.init();
     }
@@ -55,6 +56,7 @@ export class SceneManager {
 
         // 6. Global Network Setup
         this.buildGlobalNetwork();
+        this.buildUniverse();
 
         // 7. Event listeners
         window.addEventListener('resize', this.onWindowResize.bind(this));
@@ -566,7 +568,15 @@ export class SceneManager {
             this.controls.update();
 
             // Run camera distance cross-fade logic between global earth and local block model
-            if (this.globeGroup) {
+            if (this.isWelcomeActive) {
+                // Keep universe visible and everything else hidden
+                if (this.universeGroup) this.universeGroup.visible = true;
+                if (this.globeGroup) this.globeGroup.visible = false;
+                const cityGroup = this.scene.getObjectByName('cityGroup');
+                const drainageGroup = this.scene.getObjectByName('drainageGroup');
+                if (cityGroup) cityGroup.visible = false;
+                if (drainageGroup) drainageGroup.visible = false;
+            } else if (this.globeGroup) {
                 const distance = this.camera.position.distanceTo(this.controls.target);
                 const cityGroup = this.scene.getObjectByName('cityGroup');
                 const drainageGroup = this.scene.getObjectByName('drainageGroup');
@@ -614,5 +624,130 @@ export class SceneManager {
         };
 
         requestAnimationFrame(tick);
+    }
+
+    buildUniverse() {
+        this.universeGroup = new THREE.Group();
+        this.universeGroup.name = 'universeGroup';
+        this.scene.add(this.universeGroup);
+
+        // 1. Central Core Sun/BlackHole Glow
+        const coreGeo = new THREE.SphereGeometry(1.6, 16, 16);
+        const coreMat = new THREE.MeshBasicMaterial({
+            color: 0xfef08a, // bright gold core
+            transparent: true,
+            opacity: 0.85
+        });
+        const core = new THREE.Mesh(coreGeo, coreMat);
+        this.universeGroup.add(core);
+
+        // 2. Orbiting Planets
+        this.planets = [];
+        const planetConfigs = [
+            { radius: 6.0, size: 0.35, color: 0x38bdf8, speed: 0.5 },  // Blue planet
+            { radius: 10.0, size: 0.55, color: 0xf43f5e, speed: 0.35 }, // Red planet
+            { radius: 14.0, size: 0.45, color: 0x10b981, speed: 0.25 }  // Green planet
+        ];
+        planetConfigs.forEach(config => {
+            const planetGeo = new THREE.SphereGeometry(config.size, 16, 16);
+            const planetMat = new THREE.MeshStandardMaterial({
+                color: config.color,
+                roughness: 0.6,
+                metalness: 0.1,
+                transparent: true,
+                opacity: 1.0
+            });
+            const planet = new THREE.Mesh(planetGeo, planetMat);
+            planet.userData = { config, angle: Math.random() * Math.PI * 2 };
+            this.universeGroup.add(planet);
+            this.planets.push(planet);
+
+            // Orbit path ring line
+            const ringGeo = new THREE.RingGeometry(config.radius - 0.05, config.radius + 0.05, 64);
+            ringGeo.rotateX(Math.PI / 2);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: 0x1e293b,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.25
+            });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            this.universeGroup.add(ring);
+        });
+
+        // 3. Spiral Galaxy Particle System (4,000 stars)
+        const starCount = 4000;
+        const positions = new Float32Array(starCount * 3);
+        const colors = new Float32Array(starCount * 3);
+
+        const colorCore = new THREE.Color('#fcd34d'); // Gold core
+        const colorInner = new THREE.Color('#db2777'); // Magenta inner arms
+        const colorOuter = new THREE.Color('#06b6d4'); // Cyan outer arms
+
+        const arms = 3;
+        for (let i = 0; i < starCount; i++) {
+            const r = Math.random() * 26.0; // Distance from center
+            const armIndex = i % arms;
+            const theta = (armIndex * (2.0 * Math.PI / arms)) + (r * 0.22); // Spiral angle offset
+
+            // Random dispersion to make it a volumetric cloud
+            const randomX = (Math.random() - 0.5) * 1.4 * (1.0 + r * 0.08);
+            const randomY = (Math.random() - 0.5) * 0.6 * (1.0 + r * 0.04);
+            const randomZ = (Math.random() - 0.5) * 1.4 * (1.0 + r * 0.08);
+
+            const x = Math.cos(theta) * r + randomX;
+            const y = randomY;
+            const z = Math.sin(theta) * r + randomZ;
+
+            positions[i * 3] = x;
+            positions[i * 3 + 1] = y;
+            positions[i * 3 + 2] = z;
+
+            // Interpolate color based on distance
+            let mixedColor = colorCore.clone();
+            if (r < 8.0) {
+                mixedColor.lerp(colorInner, r / 8.0);
+            } else {
+                mixedColor.copy(colorInner).lerp(colorOuter, (r - 8.0) / 18.0);
+            }
+
+            colors[i * 3] = mixedColor.r;
+            colors[i * 3 + 1] = mixedColor.g;
+            colors[i * 3 + 2] = mixedColor.b;
+        }
+
+        const galaxyGeo = new THREE.BufferGeometry();
+        galaxyGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        galaxyGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const galaxyMat = new THREE.PointsMaterial({
+            size: 0.16,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending
+        });
+
+        const galaxyPoints = new THREE.Points(galaxyGeo, galaxyMat);
+        this.universeGroup.add(galaxyPoints);
+
+        // Register tick handler to rotate universe and animate orbiting planets
+        this.registerTick((dt) => {
+            if (this.universeGroup.visible) {
+                this.universeGroup.rotation.y += dt * 0.02;
+                
+                // Orbit planets
+                this.planets.forEach(p => {
+                    const cfg = p.userData.config;
+                    p.userData.angle += dt * cfg.speed;
+                    p.position.set(
+                        Math.cos(p.userData.angle) * cfg.radius,
+                        0,
+                        Math.sin(p.userData.angle) * cfg.radius
+                    );
+                    p.rotation.y += dt * 0.8;
+                });
+            }
+        });
     }
 }

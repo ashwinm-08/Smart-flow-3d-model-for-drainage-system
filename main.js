@@ -81,7 +81,31 @@ document.addEventListener('DOMContentLoaded', () => {
             // 1. Cinematic Camera Fly-In from space coords (0, 0, 36) to local coordinates (25, 20, 25)
             sceneManager.animateCamera(new THREE.Vector3(25, 20, 25), new THREE.Vector3(0, 0, 0), 2.2);
 
-            // 2. Fade out splash landing
+            // 2. Fade out the 3D Universe galaxy and transition to Earth Globe
+            if (sceneManager.universeGroup) {
+                gsap.to(sceneManager.universeGroup.position, {
+                    z: -40, // push it backwards to simulate forward camera travel through space
+                    duration: 1.8,
+                    ease: 'power2.inOut'
+                });
+                sceneManager.universeGroup.traverse(child => {
+                    if (child.material) {
+                        gsap.to(child.material, {
+                            opacity: 0,
+                            duration: 1.4,
+                            ease: 'power2.out'
+                        });
+                    }
+                });
+                setTimeout(() => {
+                    sceneManager.isWelcomeActive = false; // engage normal camera-distance fading
+                    sceneManager.universeGroup.visible = false;
+                }, 1400);
+            } else {
+                sceneManager.isWelcomeActive = false;
+            }
+
+            // 3. Fade out splash landing html overlay
             if (splash) {
                 splash.style.opacity = 0;
                 setTimeout(() => {
@@ -89,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 800);
             }
 
-            // 3. Fade in HUD telemetry elements
+            // 4. Fade in HUD telemetry elements
             if (hudOverlay) {
                 hudOverlay.style.opacity = 1;
                 hudOverlay.style.pointerEvents = 'auto';
