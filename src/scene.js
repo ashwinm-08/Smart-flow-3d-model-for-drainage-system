@@ -46,7 +46,7 @@ export class SceneManager {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.05;
-        this.controls.maxPolarAngle = Math.PI / 2 + 0.1; // Allow looking slightly underground
+        this.controls.maxPolarAngle = Math.PI; // Allow full unrestricted 3D orbit rotation (looking underground from below)
         this.controls.minDistance = 3;
         this.controls.maxDistance = 60;
         this.controls.target.set(0, 0, 0);

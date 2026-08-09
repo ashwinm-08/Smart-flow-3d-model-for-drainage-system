@@ -177,71 +177,113 @@ export class CityManager {
     spawnVehicles() {
         const carColors = [0xef4444, 0x3b82f6, 0x10b981, 0xf59e0b, 0xa855f7];
         
-        // Spawn 12 cars for realistic active street traffic
+        // Spawn 12 cars and 4 bikes for realistic active street traffic
         const tracks = [
-            { x: -2, zStart: -25, speed: 8.0, color: carColors[0], dirZ: 1 },
-            { x: 2, zStart: 25, speed: -6.5, color: carColors[1], dirZ: -1 },
-            { x: -4, zStart: -20, speed: 7.2, color: carColors[2], dirZ: 1 },
-            { x: 4, zStart: 20, speed: -8.2, color: carColors[3], dirZ: -1 },
-            { x: -6, zStart: -15, speed: 9.0, color: carColors[4], dirZ: 1 },
-            { x: 6, zStart: 15, speed: -5.8, color: carColors[0], dirZ: -1 },
+            // Cars
+            { x: -2.0, zStart: -25, speed: 8.0, color: carColors[0], dirZ: 1 },
+            { x: 2.0, zStart: 25, speed: -6.5, color: carColors[1], dirZ: -1 },
+            { x: -4.0, zStart: -20, speed: 7.2, color: carColors[2], dirZ: 1 },
+            { x: 4.0, zStart: 20, speed: -8.2, color: carColors[3], dirZ: -1 },
+            { x: -6.0, zStart: -15, speed: 9.0, color: carColors[4], dirZ: 1 },
+            { x: 6.0, zStart: 15, speed: -5.8, color: carColors[0], dirZ: -1 },
             
-            { xStart: -25, z: -2, speed: 7.5, color: carColors[1], dirX: 1 },
-            { xStart: 25, z: 2, speed: -5.2, color: carColors[2], dirX: -1 },
-            { xStart: -20, z: -4, speed: 8.5, color: carColors[3], dirX: 1 },
-            { xStart: 20, z: 4, speed: -6.8, color: carColors[4], dirX: -1 },
-            { xStart: -15, z: -6, speed: 6.2, color: carColors[0], dirX: 1 },
-            { xStart: 15, z: 6, speed: -7.5, color: carColors[1], dirX: -1 }
+            { xStart: -25, z: -2.0, speed: 7.5, color: carColors[1], dirX: 1 },
+            { xStart: 25, z: 2.0, speed: -5.2, color: carColors[2], dirX: -1 },
+            { xStart: -20, z: -4.0, speed: 8.5, color: carColors[3], dirX: 1 },
+            { xStart: 20, z: 4.0, speed: -6.8, color: carColors[4], dirX: -1 },
+            { xStart: -15, z: -6.0, speed: 6.2, color: carColors[0], dirX: 1 },
+            { xStart: 15, z: 6.0, speed: -7.5, color: carColors[1], dirX: -1 },
+
+            // Bikes / Motorcycles (smaller, narrow lane riders)
+            { x: -0.9, zStart: -22, speed: 7.0, color: 0x38bdf8, isBike: true, dirZ: 1 },
+            { x: 0.9, zStart: 22, speed: -5.8, color: 0xfcd34d, isBike: true, dirZ: -1 },
+            { xStart: -22, z: -0.9, speed: 7.4, color: 0xf43f5e, isBike: true, dirX: 1 },
+            { xStart: 22, z: 0.9, speed: -6.2, color: 0x10b981, isBike: true, dirX: -1 }
         ];
 
         tracks.forEach(track => {
-            const carGroup = new THREE.Group();
+            const vehicleGroup = new THREE.Group();
             
-            // Body
-            const bodyGeo = new THREE.BoxGeometry(0.9, 0.5, 1.6);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: track.color, roughness: 0.3 });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 0.35;
-            body.castShadow = true;
-            carGroup.add(body);
+            if (track.isBike) {
+                // --- 3D BIKE / MOTORCYCLE MODEL ---
+                // Chassis / Frame
+                const frameGeo = new THREE.BoxGeometry(0.18, 0.35, 1.1);
+                const frameMat = new THREE.MeshStandardMaterial({ color: track.color, roughness: 0.4 });
+                const frame = new THREE.Mesh(frameGeo, frameMat);
+                frame.position.y = 0.32;
+                frame.castShadow = true;
+                vehicleGroup.add(frame);
+                
+                // Handlebars
+                const barGeo = new THREE.BoxGeometry(0.55, 0.06, 0.06);
+                const barMat = new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.8 });
+                const bars = new THREE.Mesh(barGeo, barMat);
+                bars.position.set(0, 0.55, 0.3);
+                vehicleGroup.add(bars);
 
-            // Cabin
-            const cabGeo = new THREE.BoxGeometry(0.8, 0.4, 0.9);
-            const cabMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.1 });
-            const cab = new THREE.Mesh(cabGeo, cabMat);
-            cab.position.set(0, 0.7, -0.15);
-            cab.castShadow = true;
-            carGroup.add(cab);
+                // Front Wheel (in line along Z)
+                const wheelGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.08, 8);
+                const wheelMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.9 });
+                wheelGeo.rotateZ(Math.PI / 2);
+                
+                const frontWheel = new THREE.Mesh(wheelGeo, wheelMat);
+                frontWheel.position.set(0, 0.16, 0.4);
+                frontWheel.castShadow = true;
+                vehicleGroup.add(frontWheel);
 
-            // Wheels
-            const wheelGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.15, 8);
-            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.9 });
-            wheelGeo.rotateZ(Math.PI / 2);
-
-            const wheelOffsets = [
-                {x: -0.5, y: 0.2, z: -0.5},
-                {x: 0.5, y: 0.2, z: -0.5},
-                {x: -0.5, y: 0.2, z: 0.5},
-                {x: 0.5, y: 0.2, z: 0.5}
-            ];
-
-            wheelOffsets.forEach(o => {
-                const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-                wheel.position.set(o.x, o.y, o.z);
-                carGroup.add(wheel);
-            });
-
-            // Set initial position
-            if (track.zStart !== undefined) {
-                carGroup.position.set(track.x, 0.05, track.zStart);
+                // Rear Wheel (in line along Z)
+                const rearWheel = new THREE.Mesh(wheelGeo, wheelMat);
+                rearWheel.position.set(0, 0.16, -0.4);
+                rearWheel.castShadow = true;
+                vehicleGroup.add(rearWheel);
             } else {
-                carGroup.position.set(track.xStart, 0.05, track.z);
-                carGroup.rotation.y = Math.PI / 2;
+                // --- 3D CAR MODEL ---
+                // Body
+                const bodyGeo = new THREE.BoxGeometry(0.9, 0.5, 1.6);
+                const bodyMat = new THREE.MeshStandardMaterial({ color: track.color, roughness: 0.3 });
+                const body = new THREE.Mesh(bodyGeo, bodyMat);
+                body.position.y = 0.35;
+                body.castShadow = true;
+                vehicleGroup.add(body);
+
+                // Cabin
+                const cabGeo = new THREE.BoxGeometry(0.8, 0.4, 0.9);
+                const cabMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.1 });
+                const cab = new THREE.Mesh(cabGeo, cabMat);
+                cab.position.set(0, 0.7, -0.15);
+                cab.castShadow = true;
+                vehicleGroup.add(cab);
+
+                // Wheels (side-by-side)
+                const wheelGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.15, 8);
+                const wheelMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.9 });
+                wheelGeo.rotateZ(Math.PI / 2);
+
+                const wheelOffsets = [
+                    {x: -0.5, y: 0.2, z: -0.5},
+                    {x: 0.5, y: 0.2, z: -0.5},
+                    {x: -0.5, y: 0.2, z: 0.5},
+                    {x: 0.5, y: 0.2, z: 0.5}
+                ];
+
+                wheelOffsets.forEach(o => {
+                    const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+                    wheel.position.set(o.x, o.y, o.z);
+                    vehicleGroup.add(wheel);
+                });
             }
 
-            this.cityGroup.add(carGroup);
+            // Set initial position & orientation
+            if (track.zStart !== undefined) {
+                vehicleGroup.position.set(track.x, 0.05, track.zStart);
+            } else {
+                vehicleGroup.position.set(track.xStart, 0.05, track.z);
+                vehicleGroup.rotation.y = Math.PI / 2;
+            }
+
+            this.cityGroup.add(vehicleGroup);
             this.vehicles.push({
-                mesh: carGroup,
+                mesh: vehicleGroup,
                 track: track
             });
         });
