@@ -1051,3 +1051,83 @@ body {
         opacity: 0;
     }
 }
+
+/* ==========================================================================
+   ORGANIC WATER DROPLET EXPLORE BUTTON
+   ========================================================================== */
+#btn-explore-drainage {
+    background: transparent;
+    padding: 0;
+    width: 130px;
+    height: 130px;
+}
+
+#btn-explore-drainage .droplet-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 35% 35%, #0ea5e9 0%, #1e40af 70%, #0f172a 100%);
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.7), inset 0 8px 16px rgba(255,255,255,0.45);
+    border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
+    animation: slosh-blob 3.5s ease-in-out infinite alternate, button-pulse 1.8s infinite;
+}
+
+#btn-explore-drainage .droplet-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    line-height: 1.1;
+}
+
+#btn-explore-drainage .droplet-subtext {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #38bdf8;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin-top: 2px;
+}
+
+/* Pulsing aura rings around droplet */
+#btn-explore-drainage .droplet-ripple {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    right: -6px;
+    bottom: -6px;
+    border: 1.5px solid rgba(14, 165, 233, 0.5);
+    border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
+    animation: slosh-blob 3.5s ease-in-out infinite alternate, ripple-pulse 1.8s infinite;
+    pointer-events: none;
+}
+
+@keyframes slosh-blob {
+    0% { border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%; }
+    50% { border-radius: 40% 60% 40% 60% / 50% 30% 70% 50%; }
+    100% { border-radius: 65% 35% 55% 45% / 45% 65% 35% 55%; }
+}
+
+@keyframes button-pulse {
+    0% { transform: scale(1.0); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1.0); }
+}
+
+@keyframes ripple-pulse {
+    0% { transform: scale(1.0); opacity: 0.8; }
+    100% { transform: scale(1.22); opacity: 0; }
+}
+
+@keyframes bounce-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
