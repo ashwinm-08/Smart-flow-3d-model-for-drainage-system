@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         exploreBtn.addEventListener('click', () => {
             gsap.to(exploreBtn, { scale: 0.96, duration: 0.1 });
             
-            // 1. Cinematic Camera Fly-In from space coords (0, 0, 80) to local coordinates (25, 20, 25)
+            // 1. Cinematic Camera Fly-In from space coords (0, 0, 36) to local coordinates (25, 20, 25)
             sceneManager.animateCamera(new THREE.Vector3(25, 20, 25), new THREE.Vector3(0, 0, 0), 2.2);
 
             // 2. Fade out splash landing

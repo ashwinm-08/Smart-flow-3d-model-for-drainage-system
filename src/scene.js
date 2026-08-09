@@ -28,8 +28,8 @@ export class SceneManager {
             0.1, 
             1000
         );
-        // Start camera far away in space for a cinematic welcome fly-in
-        this.camera.position.set(0, 0, 80);
+        // Start camera at a perfect zoom distance (0, 0, 36) so the upscaled Earth fills the background
+        this.camera.position.set(0, 0, 36);
 
         // 3. Renderer setup
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -214,22 +214,70 @@ export class SceneManager {
         this.globeGroup.name = 'globeGroup';
         this.scene.add(this.globeGroup);
 
-        // 1. Procedural Geographic Earth Core
+        // 1. 3D Stars Starfield Backdrop
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 600;
+        const positions = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount * 3; i += 3) {
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+            const r = 90.0 + Math.random() * 60.0; // sphere shell distance
+            positions[i] = r * Math.sin(phi) * Math.cos(theta);
+            positions[i+1] = r * Math.sin(phi) * Math.sin(theta);
+            positions[i+2] = r * Math.cos(phi);
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const starMat = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.28,
+            transparent: true,
+            opacity: 0.8
+        });
+        const stars = new THREE.Points(starGeo, starMat);
+        this.globeGroup.add(stars);
+
+        // 2. Procedural Geographic Earth Core (Upscaled to 8.5)
         const earthTexture = this.buildEarthTexture();
         this.globeCoreMat = new THREE.MeshStandardMaterial({
             map: earthTexture,
-            roughness: 0.5,
+            roughness: 0.45,
             metalness: 0.2,
             transparent: true,
             opacity: 0.95
         });
         
-        const coreGeo = new THREE.SphereGeometry(5.9, 32, 32);
+        const coreGeo = new THREE.SphereGeometry(8.4, 32, 32);
         const coreMesh = new THREE.Mesh(coreGeo, this.globeCoreMat);
         this.globeGroup.add(coreMesh);
 
-        // 2. Holographic Digital Wireframe Overlay (wraps slightly outside core)
-        const sphereGeo = new THREE.SphereGeometry(6.0, 24, 24);
+        // 3. Volumetric Glowing Atmosphere Halo (Custom WebGL Fresnel Shader)
+        const haloGeo = new THREE.SphereGeometry(8.65, 32, 32);
+        const haloMat = new THREE.ShaderMaterial({
+            vertexShader: `
+                varying vec3 vNormal;
+                void main() {
+                    vNormal = normalize(normalMatrix * normal);
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vNormal;
+                void main() {
+                    float intensity = pow(0.65 - dot(vNormal, vec3(0, 0, 1.0)), 2.5);
+                    gl_FragColor = vec4(0.06, 0.65, 0.95, 1.0) * intensity;
+                }
+            `,
+            blending: THREE.AdditiveBlending,
+            side: THREE.BackSide,
+            transparent: true
+        });
+        const haloMesh = new THREE.Mesh(haloGeo, haloMat);
+        this.globeGroup.add(haloMesh);
+
+        // 4. Holographic Digital Grid Overlay
+        const sphereGeo = new THREE.SphereGeometry(8.5, 24, 24);
         this.globeMat = new THREE.MeshBasicMaterial({
             color: 0x0ea5e9,
             wireframe: true,
@@ -239,7 +287,7 @@ export class SceneManager {
         const globeMesh = new THREE.Mesh(sphereGeo, this.globeMat);
         this.globeGroup.add(globeMesh);
 
-        // 3. Spawning 3D Map Balloon Pins on City Nodes
+        // 5. Spawning 3D Map Balloon Pins on City Nodes
         const cities = [
             { name: 'NEW YORK\nRisk: High Storm', lat: 0.45, lon: -0.8, color: 0xef4444 },
             { name: 'LONDON\nRisk: Active Sweep', lat: 0.58, lon: 0.0, color: 0xf59e0b },
@@ -267,7 +315,7 @@ export class SceneManager {
                 };
             }
 
-            const r = 5.9; // Sit on the surface of the core sphere
+            const r = 8.4; // Sit on the surface of the upscaled core sphere
             const phi = (90 - city.lat * 90) * (Math.PI / 180);
             const theta = (city.lon * 180) * (Math.PI / 180);
 
@@ -290,14 +338,14 @@ export class SceneManager {
             // Add floating billboarding label above node
             const label = this.createGlobalLabel(city.name, '#' + city.color.toString(16).padStart(6, '0'));
             // Position label further out along the normal vector
-            label.position.copy(pos).add(normal.multiplyScalar(1.5));
+            label.position.copy(pos).add(normal.multiplyScalar(2.0));
             this.globeGroup.add(label);
         });
 
         // Add communicationBezier lines representing global flow routing networks
         const createArc = (start, end) => {
             const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
-            mid.normalize().multiplyScalar(7.2); // dome peak
+            mid.normalize().multiplyScalar(9.8); // upscaled dome peak
             const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
             const points = curve.getPoints(20);
             const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
@@ -316,7 +364,7 @@ export class SceneManager {
         // Auto spin the global network
         this.registerTick((dt) => {
             if (this.globeGroup.visible) {
-                this.globeGroup.rotation.y += dt * 0.05;
+                this.globeGroup.rotation.y += dt * 0.04;
             }
         });
     }
@@ -523,8 +571,8 @@ export class SceneManager {
                 const cityGroup = this.scene.getObjectByName('cityGroup');
                 const drainageGroup = this.scene.getObjectByName('drainageGroup');
 
-                const minCityDist = 14.0;
-                const maxGlobeDist = 24.0;
+                const minCityDist = 18.0;
+                const maxGlobeDist = 34.0;
 
                 if (distance > maxGlobeDist) {
                     this.globeGroup.visible = true;
