@@ -213,67 +213,32 @@ export class SceneManager {
         this.globeGroup.name = 'globeGroup';
         this.scene.add(this.globeGroup);
 
-        // 1. Digital Wireframe Globe
-        const sphereGeo = new THREE.SphereGeometry(6, 24, 24);
+        // 1. Procedural Geographic Earth Core
+        const earthTexture = this.buildEarthTexture();
+        this.globeCoreMat = new THREE.MeshStandardMaterial({
+            map: earthTexture,
+            roughness: 0.5,
+            metalness: 0.2,
+            transparent: true,
+            opacity: 0.95
+        });
+        
+        const coreGeo = new THREE.SphereGeometry(5.9, 32, 32);
+        const coreMesh = new THREE.Mesh(coreGeo, this.globeCoreMat);
+        this.globeGroup.add(coreMesh);
+
+        // 2. Holographic Digital Wireframe Overlay (wraps slightly outside core)
+        const sphereGeo = new THREE.SphereGeometry(6.0, 24, 24);
         this.globeMat = new THREE.MeshBasicMaterial({
             color: 0x0ea5e9,
             wireframe: true,
             transparent: true,
-            opacity: 0.25
+            opacity: 0.12
         });
         const globeMesh = new THREE.Mesh(sphereGeo, this.globeMat);
         this.globeGroup.add(globeMesh);
 
-        // Inner solid core representing water masses
-        const coreGeo = new THREE.SphereGeometry(5.8, 24, 24);
-        this.globeCoreMat = new THREE.MeshStandardMaterial({
-            color: 0x091e3a,
-            roughness: 0.5,
-            metalness: 0.8,
-            transparent: true,
-            opacity: 0.45
-        });
-        const coreMesh = new THREE.Mesh(coreGeo, this.globeCoreMat);
-        this.globeGroup.add(coreMesh);
-
-        // 2. Abstract Geometric Landmasses
-        const landMat = new THREE.MeshStandardMaterial({
-            color: 0x10b981,
-            roughness: 0.7,
-            metalness: 0.1,
-            transparent: true,
-            opacity: 0.6
-        });
-
-        // 6 approximate lat/lon nodes for low-poly continents
-        const landPositions = [
-            { lat: 0.5, lon: -1.2, size: 1.8 },   // North America
-            { lat: -0.4, lon: -0.9, size: 1.5 },  // South America
-            { lat: 0.7, lon: 0.2, size: 2.1 },    // Europe / Eurasia
-            { lat: 0.1, lon: 0.4, size: 1.7 },    // Africa
-            { lat: -0.5, lon: 2.3, size: 1.4 },   // Australia
-            { lat: -1.3, lon: 0, size: 1.6 }      // Antarctica
-        ];
-
-        landPositions.forEach(pos => {
-            const geom = new THREE.IcosahedronGeometry(pos.size, 1);
-            const land = new THREE.Mesh(geom, landMat);
-            
-            const r = 5.95;
-            const phi = (90 - pos.lat * 90) * (Math.PI / 180);
-            const theta = (pos.lon * 180) * (Math.PI / 180);
-
-            land.position.set(
-                -(r * Math.sin(phi) * Math.sin(theta)),
-                r * Math.cos(phi),
-                r * Math.sin(phi) * Math.cos(theta)
-            );
-            
-            land.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
-            this.globeGroup.add(land);
-        });
-
-        // 3. Spawning Global Telemetry Nodes
+        // 3. Spawning 3D Map Balloon Pins on City Nodes
         const cities = [
             { name: 'NEW YORK\nRisk: High Storm', lat: 0.45, lon: -0.8, color: 0xef4444 },
             { name: 'LONDON\nRisk: Active Sweep', lat: 0.58, lon: 0.0, color: 0xf59e0b },
@@ -285,19 +250,23 @@ export class SceneManager {
         const nodePositions = [];
 
         cities.forEach(city => {
-            const dotGeo = new THREE.SphereGeometry(0.18, 8, 8);
-            const dotMat = new THREE.MeshBasicMaterial({ color: city.color, transparent: true, opacity: 0.9 });
-            const dot = new THREE.Mesh(dotGeo, dotMat);
-
             const rawName = city.name.split('\n')[0];
             const systemKey = rawName.toLowerCase().replace(' ', ''); // 'newyork', 'london', etc.
-            dot.userData = {
-                isGlobalNode: true,
-                cityName: systemKey,
-                name: rawName
-            };
 
-            const r = 6.0;
+            // Create 3D Map Pin group
+            const pin = this.create3DPin(city.color);
+            
+            // Tag the pin head mesh as interactive for the Raycaster click checks
+            const pinHead = pin.getObjectByName('pinHead');
+            if (pinHead) {
+                pinHead.userData = {
+                    isGlobalNode: true,
+                    cityName: systemKey,
+                    name: rawName
+                };
+            }
+
+            const r = 5.9; // Sit on the surface of the core sphere
             const phi = (90 - city.lat * 90) * (Math.PI / 180);
             const theta = (city.lon * 180) * (Math.PI / 180);
 
@@ -306,13 +275,21 @@ export class SceneManager {
                 r * Math.cos(phi),
                 r * Math.sin(phi) * Math.cos(theta)
             );
-            dot.position.copy(pos);
-            this.globeGroup.add(dot);
+            pin.position.copy(pos);
+
+            // Align pin to point outwards along the Earth sphere normal vector
+            const normal = pos.clone().normalize();
+            const up = new THREE.Vector3(0, 1, 0);
+            const quaternion = new THREE.Quaternion().setFromUnitVectors(up, normal);
+            pin.quaternion.copy(quaternion);
+
+            this.globeGroup.add(pin);
             nodePositions.push(pos);
 
             // Add floating billboarding label above node
             const label = this.createGlobalLabel(city.name, '#' + city.color.toString(16).padStart(6, '0'));
-            label.position.copy(pos).multiplyScalar(1.22); // float above
+            // Position label further out along the normal vector
+            label.position.copy(pos).add(normal.multiplyScalar(1.5));
             this.globeGroup.add(label);
         });
 
@@ -371,6 +348,129 @@ export class SceneManager {
         const sprite = new THREE.Sprite(material);
         sprite.scale.set(1.8, 0.9, 1.0);
         return sprite;
+    }
+
+    create3DPin(colorHex) {
+        const pinGroup = new THREE.Group();
+        
+        // 1. Balloon Pin Head (Sphere)
+        const headGeo = new THREE.SphereGeometry(0.24, 12, 12);
+        const headMat = new THREE.MeshStandardMaterial({
+            color: colorHex,
+            emissive: colorHex,
+            emissiveIntensity: 0.35,
+            metalness: 0.7,
+            roughness: 0.2
+        });
+        const head = new THREE.Mesh(headGeo, headMat);
+        head.name = 'pinHead'; // for Raycaster intersection target
+        head.position.y = 0.55;
+        pinGroup.add(head);
+
+        // 2. Pin Cone (pointing down)
+        const coneGeo = new THREE.ConeGeometry(0.12, 0.3, 12);
+        coneGeo.rotateX(Math.PI);
+        const coneMat = new THREE.MeshStandardMaterial({
+            color: colorHex,
+            metalness: 0.7,
+            roughness: 0.2
+        });
+        const cone = new THREE.Mesh(coneGeo, coneMat);
+        cone.position.y = 0.4;
+        pinGroup.add(cone);
+
+        // 3. Pin Stem (Cylinder connection)
+        const stemGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.4, 8);
+        const stemMat = new THREE.MeshStandardMaterial({
+            color: 0x94a3b8, // silver metal stem
+            metalness: 0.9,
+            roughness: 0.1
+        });
+        const stem = new THREE.Mesh(stemGeo, stemMat);
+        stem.position.y = 0.2;
+        pinGroup.add(stem);
+
+        return pinGroup;
+    }
+
+    buildEarthTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // Draw deep ocean blue background
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 1024, 512);
+
+        // Draw subtle longitude / latitude grid overlays
+        ctx.strokeStyle = 'rgba(14, 165, 233, 0.1)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < 1024; x += 64) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke();
+        }
+        for (let y = 0; y < 512; y += 64) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1024, y); ctx.stroke();
+        }
+
+        // Draw simplified geographic continent paths
+        ctx.fillStyle = '#10b981'; // Green continents
+
+        const drawLand = (coords) => {
+            if (coords.length < 2) return;
+            ctx.beginPath();
+            ctx.moveTo(coords[0][0], coords[0][1]);
+            for (let i = 1; i < coords.length; i++) {
+                ctx.lineTo(coords[i][0], coords[i][1]);
+            }
+            ctx.closePath();
+            ctx.fill();
+        };
+
+        // Coordinates scaled to 1024x512 projection:
+        // North America
+        drawLand([
+            [100, 80], [220, 60], [320, 100], [300, 180], [260, 200], 
+            [220, 180], [180, 160], [140, 150], [120, 110]
+        ]);
+        // Greenland
+        drawLand([
+            [350, 40], [420, 30], [400, 80], [360, 80]
+        ]);
+        // South America
+        drawLand([
+            [250, 210], [320, 210], [340, 250], [310, 320], [280, 420], 
+            [260, 420], [250, 320], [230, 260]
+        ]);
+        // Africa
+        drawLand([
+            [460, 210], [530, 190], [600, 240], [620, 320], [580, 420], 
+            [540, 420], [500, 310], [440, 260]
+        ]);
+        // Europe & Asia (Eurasia)
+        drawLand([
+            [420, 120], [520, 80], [640, 60], [800, 60], [920, 80], 
+            [900, 180], [820, 220], [740, 210], [700, 250], [620, 240], 
+            [580, 180], [520, 180], [460, 150]
+        ]);
+        // India
+        drawLand([
+            [680, 210], [710, 210], [700, 240]
+        ]);
+        // Indochina / SE Asia
+        drawLand([
+            [760, 210], [800, 210], [790, 260], [770, 260]
+        ]);
+        // Australia
+        drawLand([
+            [800, 320], [900, 320], [920, 380], [820, 380]
+        ]);
+        // Antarctica
+        drawLand([
+            [50, 480], [974, 480], [974, 505], [50, 505]
+        ]);
+
+        return new THREE.CanvasTexture(canvas);
     }
 
     setGroupOpacity(group, opacity) {
