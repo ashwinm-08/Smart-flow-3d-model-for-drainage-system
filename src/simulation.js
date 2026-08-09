@@ -384,6 +384,7 @@ export class SimulationEngine {
             waterLevel: Math.round(this.pipeWaterLevel),
             wasteFill: Math.round(this.wastePercent),
             storageFill: Math.round(this.storagePercent),
+            storageCapacity: this.tankCapacity,
             flowUpstream: this.inflowRate.toFixed(1),
             flowDownstream: this.outflowRate.toFixed(1),
             flowStatus: this.blockagePercent > 60 ? 'Critical Obstruction' : (this.blockagePercent > 20 ? 'Reduced Flow' : 'Normal'),

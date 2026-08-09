@@ -10,6 +10,8 @@ export class DashboardManager {
             barWasteLevel: document.getElementById('bar-waste-level'),
             valStorageLevel: document.getElementById('val-storage-level'),
             barStorageLevel: document.getElementById('bar-storage-level'),
+            svgWaterBubble: document.getElementById('svg-water-bubble'),
+            svgLiquidFill: document.getElementById('svg-liquid-fill'),
             
             flowUpstream: document.getElementById('val-flow-upstream'),
             flowDownstream: document.getElementById('val-flow-downstream'),
@@ -75,8 +77,18 @@ export class DashboardManager {
             this.setBarColor(this.els.barWasteLevel, state.wasteFill);
         }
 
-        if (this.els.valStorageLevel) this.els.valStorageLevel.textContent = `${state.storageFill}%`;
+        const capacity = state.storageCapacity || 10000;
+        const liters = Math.round((state.storageFill * capacity) / 100);
+        if (this.els.valStorageLevel) this.els.valStorageLevel.innerHTML = `${liters} L <span class="unit">(${state.storageFill}%)</span>`;
         if (this.els.barStorageLevel) this.els.barStorageLevel.style.width = `${state.storageFill}%`;
+
+        // Update the SVG height percentage to slosh and fill the wave indicators
+        if (this.els.svgWaterBubble) {
+            this.els.svgWaterBubble.style.height = `${state.waterLevel}%`;
+        }
+        if (this.els.svgLiquidFill) {
+            this.els.svgLiquidFill.style.height = `${state.storageFill}%`;
+        }
 
         // 2. Metrics Rows
         if (this.els.flowUpstream) this.els.flowUpstream.textContent = `${state.flowUpstream} L/s`;
@@ -218,6 +230,29 @@ export class DashboardManager {
                 subtitleEl.textContent = 'SYSTEM: SYDNEY GPT (GROSS POLLUTANT TRAP)';
                 this.log('Switched to Sydney system: Gross pollutant traps & centrifugal vortex separators.', 'success');
             }
+        }
+
+        // Update beaker scale tick labels based on active city's capacity
+        const ticksEl = document.getElementById('beaker-ticks');
+        const titleEl = document.getElementById('lbl-reservoir-title');
+        if (ticksEl) {
+            let ticks = ['10k', '7k', '5k', '2k', '0'];
+            let title = 'RESERVOIR TANK';
+            if (cityName === 'tokyo') {
+                ticks = ['50k', '35k', '25k', '10k', '0'];
+                title = 'SURGE CATHEDRAL';
+            } else if (cityName === 'london') {
+                ticks = ['25k', '18k', '12k', '6k', '0'];
+                title = 'TIDEWAY TUNNEL';
+            } else if (cityName === 'newyork') {
+                ticks = ['10k', '7k', '5k', '2k', '0'];
+                title = 'AQUIFER RECHARGE';
+            } else if (cityName === 'sydney') {
+                ticks = ['12k', '9k', '6k', '3k', '0'];
+                title = 'VORTEX CHAMBER';
+            }
+            if (titleEl) titleEl.textContent = title;
+            ticksEl.innerHTML = ticks.map(t => `<span>${t}</span>`).join('');
         }
     }
 }
